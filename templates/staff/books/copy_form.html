@@ -1,0 +1,15 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}Edit {{ copy.label }}{% endblock %}
+{% block content %}
+<div class="staff-head">
+  <div><nav class="breadcrumb"><a href="{% url 'staff:book' copy.book_id %}">{{ copy.book.title }}</a> / <a href="{% url 'staff:copy' copy.pk %}">{{ copy.label }}</a></nav><h1>Edit physical copy</h1><p>These changes affect only {{ copy.label }} ({{ copy.copy_code }}), not the book itself.</p></div>
+</div>
+<form method="post" novalidate class="card container--narrow">{% csrf_token %}
+  {% include "components/form_errors.html" %}
+  <div class="form-row">{% include "components/field.html" with field=form.barcode %}{% include "components/field.html" with field=form.shelf_location %}</div>
+  <div class="form-row">{% include "components/field.html" with field=form.condition %}{% include "components/field.html" with field=form.status %}</div>
+  <p class="help mt-2">Marking a copy <strong>Damaged</strong> or <strong>Lost</strong> stops it from being lent. If it was on hold for someone, their reservation moves to another copy automatically.</p>
+  <div class="form-row">{% include "components/field.html" with field=form.acquired_on %}{% include "components/field.html" with field=form.notes %}</div>
+  <div class="form-actions"><button class="btn btn--primary btn--lg" type="submit">Save copy</button><a class="btn btn--lg" href="{% url 'staff:copy' copy.pk %}">Cancel</a></div>
+</form>
+{% endblock %}

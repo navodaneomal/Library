@@ -1,0 +1,13 @@
+{% autoescape off %}Hello {{ member.user.first_name }},
+
+Welcome to {{ library_name }}! Your membership is ready.
+
+Member ID: {{ member.member_id }}
+
+Your digital library card is in your account: {{ card_url }}
+Show it at the desk and we'll scan it to lend you books.
+
+Happy reading.
+
+— {{ library_name }}
+{% endautoescape %}

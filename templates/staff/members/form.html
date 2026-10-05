@@ -1,0 +1,21 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}{% if is_new %}Register member{% else %}Edit {{ member.user.full_name }}{% endif %}{% endblock %}
+{% block content %}
+<div class="staff-head">
+  <div><nav class="breadcrumb"><a href="{% url 'staff:members' %}">Members</a>{% if member %} / <a href="{% url 'staff:member' member.pk %}">{{ member.user.full_name }}</a>{% endif %}</nav>
+  <h1>{% if is_new %}Register a member{% else %}Edit member{% endif %}</h1>
+  <p>{% if is_new %}A member ID and library card are created automatically.{% else %}{{ member.member_id }}{% endif %}</p></div>
+</div>
+<form method="post" novalidate class="card container--narrow">{% csrf_token %}
+  {% include "components/form_errors.html" %}
+  {% include "components/field.html" with field=form.full_name %}
+  <div class="form-row">{% include "components/field.html" with field=form.email %}{% include "components/field.html" with field=form.phone %}</div>
+  <div class="form-row">{% include "components/field.html" with field=form.address %}{% include "components/field.html" with field=form.date_of_birth %}</div>
+  <div class="mt-4 stack-sm">
+    {% include "components/field.html" with field=form.email_reminders %}
+    {% if form.send_invite %}{% include "components/field.html" with field=form.send_invite %}{% endif %}
+  </div>
+  {% include "components/field.html" with field=form.staff_notes %}
+  <div class="form-actions"><button class="btn btn--primary btn--lg" type="submit">{% if is_new %}Register member{% else %}Save changes{% endif %}</button><a class="btn btn--lg" href="{% if member %}{% url 'staff:member' member.pk %}{% else %}{% url 'staff:members' %}{% endif %}">Cancel</a></div>
+</form>
+{% endblock %}

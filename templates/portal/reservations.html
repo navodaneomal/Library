@@ -1,0 +1,46 @@
+{% extends "public/layout.html" %}
+{% block title %}Reservations — {{ library.library_name }}{% endblock %}
+{% block content %}
+<div class="container container--reading">
+  <header class="page-head"><h1>Reservations</h1><p>Your place in each queue, and books waiting for you at the desk.</p></header>
+  <section class="card" aria-labelledby="open-h">
+    <h2 id="open-h" class="visually-hidden">Active reservations</h2>
+    {% for row in open_rows %}
+      {% with res=row.reservation %}
+      <div class="loan-item">
+        {% include "components/cover.html" with book=res.book size="sm" %}
+        <div class="loan-item__body">
+          <a class="loan-item__title" href="{% url 'portal:reservation' res.pk %}">{{ res.book.title }}</a>
+          <div class="loan-item__meta">Reserved {{ res.created_at|short_date }}</div>
+          <div class="row">
+            {% badge res.status res.get_status_display %}
+            {% if res.status == "ready" %}<span class="small"><strong>Collect by {{ res.collect_by|nice_date }}</strong></span>
+            {% else %}<span class="small">Queue position <strong>{{ row.position }}</strong> · {{ row.estimate.text }}</span>{% endif %}
+          </div>
+          <form method="post" action="{% url 'portal:cancel_reservation' res.pk %}" class="mt-3" data-confirm="Cancel your reservation for {{ res.book.title }}?">{% csrf_token %}
+            <button class="btn btn--ghost btn--sm" type="submit">Cancel reservation</button>
+          </form>
+        </div>
+      </div>
+      {% endwith %}
+    {% empty %}
+      {% url 'public:catalogue' as catalogue_url %}
+      {% include "components/empty.html" with icon="bookmark" title="Nothing reserved yet." text="Find something interesting? Reserve it from home and we'll set it aside." action_url=catalogue_url action_label="Browse books" compact=True %}
+    {% endfor %}
+  </section>
+
+  {% if past %}
+  <section class="card card--flush mt-5" aria-labelledby="past-h">
+    <div class="card-head card-head--pad"><h2 id="past-h" class="h3">Past reservations</h2></div>
+    <table class="table table--cards">
+      <thead><tr><th>Book</th><th>Reserved</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for res in past %}
+        <tr><td class="td-primary"><a class="table-title" href="{{ res.book.get_absolute_url }}">{{ res.book.title }}</a></td><td data-label="Reserved">{{ res.created_at|short_date }}</td><td data-label="Status">{% badge res.status res.get_status_display %}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends "public/layout.html" %}
+{% block title %}Profile — {{ library.library_name }}{% endblock %}
+{% block content %}
+<div class="container container--narrow">
+  <header class="page-head"><h1>Profile</h1><p>Member since {{ member.created_at|nice_date }}.</p></header>
+  <section class="card">
+    <div class="member-panel mb-4">
+      <span class="avatar avatar--lg">{{ user.full_name|initials }}</span>
+      <div><strong>{{ user.full_name }}</strong><div class="small muted mono">{{ member.member_id }}</div></div>
+      <a class="btn btn--soft" href="{% url 'portal:card' %}">{% icon "card" %} Library card</a>
+    </div>
+    <dl class="kv">
+      <dt>Email</dt><dd>{{ user.email|default:"—" }} {% if user.email %}{% if user.email_verified %}{% badge "ok" "Verified" %}{% else %}{% badge "pending" "Not verified" %}{% endif %}{% endif %}</dd>
+      <dt>Status</dt><dd>{% badge member.status member.get_status_display %}</dd>
+    </dl>
+    {% if user.email and not user.email_verified %}
+    <form method="post" action="{% url 'accounts:resend_verification' %}" class="mt-3">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn btn--sm" type="submit">{% icon "mail" %} Send verification link</button></form>
+    {% endif %}
+  </section>
+  <section class="card" aria-labelledby="edit-h">
+    <h2 id="edit-h" class="h3 mb-4">Your details</h2>
+    <form method="post" novalidate>{% csrf_token %}
+      {% include "components/form_errors.html" %}
+      {% include "components/field.html" with field=form.full_name %}
+      <div class="form-row">{% include "components/field.html" with field=form.phone %}{% include "components/field.html" with field=form.address %}</div>
+      <div class="mt-4">{% include "components/field.html" with field=form.email_reminders %}</div>
+      <div class="form-actions"><button class="btn btn--primary" type="submit">Save changes</button><a class="btn" href="{% url 'accounts:password_change' %}">Change password</a></div>
+    </form>
+  </section>
+  <section class="card">
+    <div class="row row--between">
+      <div><strong>Appearance</strong><div class="small muted">Light or dark — remembered on this device.</div></div>
+      <button type="button" class="btn" data-theme-toggle>{% icon "moon" %} <span data-theme-label>Dark mode</span></button>
+    </div>
+  </section>
+  <form method="post" action="{% url 'accounts:logout' %}" class="mt-4">{% csrf_token %}<button class="btn btn--ghost btn--block" type="submit">{% icon "logout" %} Sign out</button></form>
+</div>
+{% endblock %}

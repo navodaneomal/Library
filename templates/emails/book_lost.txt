@@ -1,0 +1,10 @@
+{% autoescape off %}Hello {{ member.user.first_name }},
+
+{{ book.title }} has been recorded as lost and the loan has been closed.
+{% for fee in fees %}- {{ fee.get_kind_display }}: {{ currency }} {{ fee.amount|floatformat:2 }}
+{% endfor %}Total: {{ currency }} {{ total|floatformat:2 }}
+
+If you find the book, please bring it back and speak to a librarian.
+
+— {{ library_name }}
+{% endautoescape %}

@@ -1,0 +1,32 @@
+{% if found %}
+  {% if found.kind == "copy" %}
+  <div class="result result--warning" data-sound="warning" role="alert">
+    <div class="result__head"><span class="result__icon">{% icon "alert" %}</span><div><div class="result__title">This barcode is already registered</div><div class="result__subtitle">{{ found.copy.book.title }}</div></div></div>
+    <dl class="kv">
+      <dt>Copy ID</dt><dd class="mono">{{ found.copy.copy_code }}</dd>
+      <dt>Barcode</dt><dd class="mono">{{ found.copy.barcode }}</dd>
+      <dt>Status</dt><dd>{% badge found.copy.status found.copy.get_status_display %}</dd>
+      <dt>Location</dt><dd>{{ found.copy.shelf_location|default:"No shelf set" }}</dd>
+    </dl>
+    <div class="result__actions"><a class="btn" href="{% url 'staff:copy' found.copy.pk %}">Open this copy</a><a class="btn btn--soft" href="{% url 'staff:copy_add' found.copy.book_id %}">Add another copy</a></div>
+  </div>
+  {% elif found.kind == "book" %}
+  <div class="result result--info" data-sound="success">
+    <div class="result__head"><span class="result__icon">{% icon "books" %}</span><div><div class="result__title">Already in the catalogue</div><div class="result__subtitle">{{ found.book.title }}</div></div></div>
+    <p class="result__hint">This ISBN belongs to an existing title. Add a new physical copy instead.</p>
+    <div class="result__actions"><a class="btn btn--primary" href="{% url 'staff:copy_add' found.book.pk %}" data-autofocus>{% icon "plus" %} Add a copy</a><a class="btn" href="{% url 'staff:book' found.book.pk %}">View book</a></div>
+  </div>
+  {% elif found.kind == "new_isbn" %}
+  <div class="result result--success" data-sound="success">
+    <div class="result__head"><span class="result__icon">{% icon "check" %}</span><div><div class="result__title">New book</div><div class="result__subtitle">ISBN {{ found.isbn }}</div></div></div>
+    <div class="result__actions"><a class="btn btn--primary" href="{% url 'staff:book_new' %}?isbn={{ found.isbn }}" data-autofocus>Continue to details {% icon "arrow-right" %}</a></div>
+  </div>
+  {% elif found.kind == "member" %}
+  <div class="result result--error" data-sound="error"><div class="result__head"><span class="result__icon">{% icon "x" %}</span><div><div class="result__title">That's a library card</div><div class="result__subtitle">{{ found.member.user.full_name }}</div></div></div></div>
+  {% elif found.kind == "unknown" %}
+  <div class="result result--success" data-sound="success">
+    <div class="result__head"><span class="result__icon">{% icon "check" %}</span><div><div class="result__title">New barcode</div><div class="result__subtitle mono">{{ found.code }}</div></div></div>
+    <div class="result__actions"><a class="btn btn--primary" href="{% url 'staff:book_new' %}?barcode={{ found.code|urlencode }}" data-autofocus>Register a new book {% icon "arrow-right" %}</a></div>
+  </div>
+  {% endif %}
+{% endif %}

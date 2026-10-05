@@ -1,0 +1,44 @@
+<div class="desk">
+  <div class="stack">
+    <section class="scan-box" aria-labelledby="ret-h">
+      <div class="scan-step" id="ret-h"><span class="scan-step__n">{% icon "return" %}</span> Scan book barcode</div>
+      <form method="post" action="{% url 'staff:return' %}" data-swap="#desk" autocomplete="off">{% csrf_token %}
+        <label class="visually-hidden" for="return-code">Book barcode</label>
+        <div class="scan-input">
+          <input id="return-code" name="code" type="text" placeholder="Scan the book's barcode" data-scan-primary data-autofocus data-clear-after autofocus>
+          <button class="btn btn--icon" type="button" data-camera-for="return-code" hidden aria-label="Scan with camera">{% icon "camera" %}</button>
+          <button class="btn btn--primary" type="submit">Return</button>
+        </div>
+        <p class="scan-hint">{% icon "scan" %} Keep scanning — the box is ready for the next book straight away.</p>
+      </form>
+    </section>
+    <div aria-live="polite">
+    {% with result=state.result %}
+      {% if result %}
+      <div class="result result--{{ result.tone }}" data-sound="{{ result.sound }}">
+        <div class="result__head">
+          <span class="result__icon" aria-hidden="true">{% if result.tone == "success" %}{% icon "check" %}{% elif result.tone == "error" %}{% icon "x" %}{% elif result.tone == "warning" %}{% icon "alert" %}{% else %}{% icon "info" %}{% endif %}</span>
+          <div><div class="result__title">{% if result.title == "Book returned" %}📚 {% endif %}{{ result.title }}</div>{% if result.subtitle %}<div class="result__subtitle">{{ result.subtitle }}</div>{% endif %}</div>
+        </div>
+        {% if result.details %}<dl class="kv">{% for label, value in result.details %}<dt>{{ label }}</dt><dd>{{ value }}</dd>{% endfor %}</dl>{% endif %}
+        {% if result.problems %}<ul class="result__problems">{% for p in result.problems %}<li>{{ p }}</li>{% endfor %}</ul>{% endif %}
+        {% if result.hint %}<p class="result__hint">{{ result.hint }}</p>{% endif %}
+      </div>
+      {% endif %}
+    {% endwith %}
+    </div>
+  </div>
+  <section class="card" aria-labelledby="session-h">
+    <div class="card-head"><h2 id="session-h" class="h3">Returned this session</h2>
+      {% if state.recent %}<form method="post" action="{% url 'staff:return' %}" data-swap="#desk">{% csrf_token %}<button class="btn btn--sm btn--ghost" name="action" value="clear" type="submit">Clear list</button></form>{% endif %}
+    </div>
+    {% if state.recent %}
+    <ul class="recent-list">{% for item in state.recent %}
+      <li>{% icon "check-circle" %}<span class="grow"><strong>{{ item.title }}</strong><br><span class="small muted">{{ item.member }}</span></span>
+        {% if item.hold %}<span class="hold-tag small">{% icon "bookmark" %} Hold: {{ item.hold }}</span>{% endif %}
+        {% if item.fee %}<span class="badge badge--warning"><span class="badge__dot"></span>{{ item.fee }}</span>{% endif %}
+      </li>{% endfor %}
+    </ul>
+    {% else %}{% include "components/empty.html" with icon="return" title="Nothing returned yet" text="Scanned books will be listed here." compact=True %}{% endif %}
+  </section>
+</div>

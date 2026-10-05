@@ -1,0 +1,3 @@
+{% extends "emails/base.html" %}
+{% block content %}<p>Hello {{ user.first_name }},</p><p>Please confirm your email address so we can send you due-date reminders and tell you when reserved books are ready.</p>{% endblock %}
+{% block button %}<tr><td style="padding:8px 28px 28px;"><a href="{{ link }}" style="display:inline-block;background:#1f4d3f;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:10px;">Confirm my email</a><p style="font-size:13px;color:#646b66;">If you did not create an account, you can ignore this email.</p></td></tr>{% endblock %}

@@ -1,0 +1,19 @@
+<div class="loan-item">
+  <a href="{{ row.loan.copy.book.get_absolute_url }}" tabindex="-1" aria-hidden="true">{% include "components/cover.html" with book=row.loan.copy.book size="sm" %}</a>
+  <div class="loan-item__body">
+    <a class="loan-item__title" href="{{ row.loan.copy.book.get_absolute_url }}">{{ row.loan.copy.book.title }}</a>
+    <div class="loan-item__meta">{{ row.loan.copy.book.author_names }} · Due {{ row.loan.due_date|nice_date }}</div>
+    <div class="row">
+      {% include "components/due.html" with date=row.loan.due_date %}
+      {% if row.quote.amount %}<span class="small" title="Estimated — keeps growing until the book is returned">Estimated fee <strong>{{ row.quote.amount|money }}</strong></span>{% endif %}
+    </div>
+    {% if not row.renew_problems %}
+    <form method="post" action="{% url 'portal:renew' row.loan.pk %}" class="mt-3">{% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.path }}">
+      <button class="btn btn--soft btn--sm" type="submit">{% icon "refresh" %} Renew for {{ library.renewal_days }} more days</button>
+    </form>
+    {% elif show_renew_reason %}
+    <p class="small muted mt-2 mb-0">{{ row.renew_problems.0.message }}</p>
+    {% endif %}
+  </div>
+</div>

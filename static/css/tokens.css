@@ -1,0 +1,155 @@
+/* ==========================================================================
+   Design tokens — "Calm + Intelligent + Academic + Premium + Trustworthy"
+   Warm paper, deep library green, a touch of brass.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+  --bg: #f6f3ec;
+  --bg-elevated: #fbf9f4;
+  --surface: #ffffff;
+  --surface-2: #faf8f3;
+  --surface-sunken: #f0ece3;
+  --ink: #1c1f1d;
+  --ink-2: #3f4541;
+  --muted: #646b66;
+  --line: #e5e0d6;
+  --line-strong: #d2cbbd;
+
+  --primary: #1f4d3f;
+  --primary-hover: #183e33;
+  --primary-ink: #ffffff;
+  --primary-soft: #e4eee9;
+  --primary-soft-ink: #1a4236;
+  --accent: #9c6f27;
+  --accent-soft: #f6ecda;
+
+  --success: #1d7349;
+  --success-soft: #e2f2e8;
+  --warning: #8d5a00;
+  --warning-soft: #fbefd6;
+  --danger: #a9362a;
+  --danger-soft: #f9e3df;
+  --info: #285a87;
+  --info-soft: #e3ecf6;
+  --neutral: #5a605c;
+  --neutral-soft: #ecebe6;
+
+  --focus: #2f6fd1;
+  --shadow-sm: 0 1px 2px rgba(28, 31, 29, 0.05);
+  --shadow: 0 1px 2px rgba(28, 31, 29, 0.04), 0 4px 14px rgba(28, 31, 29, 0.05);
+  --shadow-lg: 0 2px 6px rgba(28, 31, 29, 0.05), 0 12px 32px rgba(28, 31, 29, 0.08);
+
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans",
+    "Noto Sans Sinhala", "Noto Sans Tamil", sans-serif;
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", "URW Palladio L", Georgia,
+    "Noto Serif", serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  --container: 1180px;
+  --gutter: 16px;
+  --header-h: 64px;
+  --tabbar-h: 64px;
+  --sidebar-w: 248px;
+
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --fast: 140ms;
+  --med: 220ms;
+
+  /* Placeholder cover palette (deep, bookish tones) */
+  --tone-1: #24493d;
+  --tone-2: #23395b;
+  --tone-3: #6b2a2a;
+  --tone-4: #7a5a1e;
+  --tone-5: #3d4750;
+  --tone-6: #4b2f55;
+  --tone-7: #1f5257;
+  --tone-8: #5b3b22;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #111513;
+    --bg-elevated: #161b18;
+    --surface: #181d1a;
+    --surface-2: #1d2320;
+    --surface-sunken: #0d110f;
+    --ink: #ebe9e3;
+    --ink-2: #c7cac4;
+    --muted: #9ba29d;
+    --line: #2a312d;
+    --line-strong: #39423d;
+    --primary: #84c7a8;
+    --primary-hover: #9dd5bb;
+    --primary-ink: #0d1b15;
+    --primary-soft: #1d362c;
+    --primary-soft-ink: #b9e2cf;
+    --accent: #ddb468;
+    --accent-soft: #352a17;
+    --success: #74d29c;
+    --success-soft: #16301f;
+    --warning: #ecb453;
+    --warning-soft: #352a12;
+    --danger: #f2938a;
+    --danger-soft: #3b1d1a;
+    --info: #8fbbe9;
+    --info-soft: #182a3c;
+    --neutral: #a9aea9;
+    --neutral-soft: #262c29;
+    --focus: #7fb0ff;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 14px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.4), 0 12px 32px rgba(0, 0, 0, 0.35);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111513;
+  --bg-elevated: #161b18;
+  --surface: #181d1a;
+  --surface-2: #1d2320;
+  --surface-sunken: #0d110f;
+  --ink: #ebe9e3;
+  --ink-2: #c7cac4;
+  --muted: #9ba29d;
+  --line: #2a312d;
+  --line-strong: #39423d;
+  --primary: #84c7a8;
+  --primary-hover: #9dd5bb;
+  --primary-ink: #0d1b15;
+  --primary-soft: #1d362c;
+  --primary-soft-ink: #b9e2cf;
+  --accent: #ddb468;
+  --accent-soft: #352a17;
+  --success: #74d29c;
+  --success-soft: #16301f;
+  --warning: #ecb453;
+  --warning-soft: #352a12;
+  --danger: #f2938a;
+  --danger-soft: #3b1d1a;
+  --info: #8fbbe9;
+  --info-soft: #182a3c;
+  --neutral: #a9aea9;
+  --neutral-soft: #262c29;
+  --focus: #7fb0ff;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 14px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.4), 0 12px 32px rgba(0, 0, 0, 0.35);
+}

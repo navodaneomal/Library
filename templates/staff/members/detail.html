@@ -1,0 +1,154 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}{{ member.user.full_name }}{% endblock %}
+{% block content %}
+<div class="staff-head">
+  <div class="member-panel">
+    <span class="avatar avatar--lg">{{ member.user.full_name|initials }}</span>
+    <div>
+      <nav class="breadcrumb"><a href="{% url 'staff:members' %}">Members</a></nav>
+      <h1>{{ member.user.full_name }}</h1>
+      <div class="row mt-2"><span class="mono">{{ member.member_id }}</span>{% badge member.status member.get_status_display %}{% if standing.can_borrow %}{% badge "available" "Can borrow" %}{% else %}{% badge "borrowed" "Borrowing blocked" %}{% endif %}</div>
+    </div>
+  </div>
+  <div class="row">
+    <a class="btn btn--primary" href="{% url 'staff:borrow' %}?member={{ member.pk }}">{% icon "refresh" %} Lend books</a>
+    <a class="btn" href="{% url 'staff:member_card' member.pk %}">{% icon "card" %} Card</a>
+    {% if "members.manage" in caps %}<a class="btn" href="{% url 'staff:member_edit' member.pk %}">{% icon "edit" %} Edit</a>{% endif %}
+  </div>
+</div>
+
+{% if standing.blocks %}
+<div class="alert alert--warning mb-4">{% icon "alert" %}<div><p><strong>Borrowing unavailable.</strong></p>{% for b in standing.blocks %}<p>{{ b.message }}</p>{% endfor %}</div></div>
+{% endif %}
+
+<section class="grid-4" aria-label="Summary">
+  <div class="stat"><div class="stat__label">Borrowed</div><div class="stat__value">{{ standing.active_loans|length }}</div></div>
+  <div class="stat"><div class="stat__label">Reservations</div><div class="stat__value">{{ reservations|length }}</div></div>
+  <div class="stat{% if standing.overdue_loans %} stat--danger{% endif %}"><div class="stat__label">Overdue</div><div class="stat__value">{{ standing.overdue_loans|length }}</div></div>
+  <div class="stat{% if standing.outstanding_fees %} stat--warning{% endif %}"><div class="stat__label">Outstanding fees</div><div class="stat__value stat__value--sm num">{{ standing.outstanding_fees|money }}</div>{% if standing.estimated_fees %}<div class="stat__hint">+ {{ standing.estimated_fees|money }} accruing</div>{% endif %}</div>
+</section>
+
+<section class="card card--flush mt-5" aria-labelledby="loans-h">
+  <div class="card-head card-head--pad"><h2 id="loans-h" class="h3">Currently borrowed</h2></div>
+  {% if loans %}
+  <table class="table table--cards">
+    <thead><tr><th>Book</th><th>Borrowed</th><th>Due</th><th class="num">Estimated fee</th><th></th></tr></thead>
+    <tbody>{% for row in loans %}{% with loan=row.loan %}
+      <tr>
+        <td class="td-primary"><a class="table-title" href="{% url 'staff:copy' loan.copy_id %}">{{ loan.copy.book.title }}</a><div class="small muted mono">{{ loan.copy.copy_code }}</div></td>
+        <td data-label="Borrowed">{{ loan.borrowed_at|short_date }}</td>
+        <td data-label="Due">{% include "components/due.html" with date=loan.due_date %}</td>
+        <td data-label="Estimated fee" class="num">{% if row.quote.amount %}{{ row.quote.amount|money }}{% else %}—{% endif %}</td>
+        <td data-label="" class="td-actions right">
+          <div class="row row--end">
+            {% if not row.renew_problems %}<form method="post" action="{% url 'staff:loan_renew' loan.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn btn--sm" type="submit">Renew</button></form>{% endif %}
+            {% if row.quote.days_overdue %}<form method="post" action="{% url 'staff:loan_remind' loan.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn btn--sm" type="submit">{% icon "mail" %} Remind</button></form>{% endif %}
+            {% if "fees.manage" in caps %}<form method="post" action="{% url 'staff:loan_lost' loan.pk %}" data-confirm="Mark '{{ loan.copy.book.title }}' as lost? The loan closes and a replacement fee is charged.">{% csrf_token %}<button class="btn btn--sm btn--danger" type="submit">Mark lost</button></form>{% endif %}
+          </div>
+        </td>
+      </tr>
+    {% endwith %}{% endfor %}</tbody>
+  </table>
+  {% else %}{% include "components/empty.html" with title="Nothing on loan" compact=True %}{% endif %}
+</section>
+
+<div class="grid-2 mt-5">
+  <section class="card card--flush" aria-labelledby="res-h">
+    <div class="card-head card-head--pad"><h2 id="res-h" class="h3">Reservations</h2></div>
+    {% if reservations %}
+    <table class="table table--cards"><tbody>{% for r in reservations %}
+      <tr>
+        <td class="td-primary">{{ r.book.title }}<div>{% badge r.status r.get_status_display %}{% if r.collect_by %} <span class="small">collect by {{ r.collect_by|short_date }}</span>{% endif %}</div></td>
+        <td data-label="" class="td-actions right"><form method="post" action="{% url 'staff:reservation_cancel' r.pk %}" data-confirm="Cancel this reservation?">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn btn--sm btn--ghost" type="submit">Cancel</button></form></td>
+      </tr>
+    {% endfor %}</tbody></table>
+    {% else %}{% include "components/empty.html" with icon="bookmark" title="No reservations" compact=True %}{% endif %}
+  </section>
+
+  <section class="card" aria-labelledby="details-h">
+    <div class="card-head"><h2 id="details-h" class="h3">Details</h2></div>
+    <dl class="kv">
+      <dt>Email</dt><dd>{{ member.user.email|default:"—" }}</dd>
+      <dt>Phone</dt><dd>{{ member.phone|default:"—" }}</dd>
+      <dt>Address</dt><dd>{{ member.address|default:"—" }}</dd>
+      <dt>Date of birth</dt><dd>{{ member.date_of_birth|nice_date|default:"—" }}</dd>
+      <dt>Member since</dt><dd>{{ member.created_at|nice_date }}</dd>
+      <dt>Reminders</dt><dd>{% if member.email_reminders %}Email{% else %}Off{% endif %}</dd>
+      {% if member.staff_notes %}<dt>Staff notes</dt><dd>{{ member.staff_notes|linebreaksbr }}</dd>{% endif %}
+    </dl>
+    {% if "members.manage" in caps %}
+    <hr>
+    <form method="post" action="{% url 'staff:member_status' member.pk %}" class="form-row">{% csrf_token %}
+      <div class="field"><label for="{{ status_form.status.id_for_label }}">Membership</label>{{ status_form.status }}</div>
+      <div class="field"><label for="{{ status_form.reason.id_for_label }}">Reason (optional)</label>{{ status_form.reason }}</div>
+      <div class="field"><span class="label">&nbsp;</span><button class="btn" type="submit">Update status</button></div>
+    </form>
+    {% if member.user.email %}<form method="post" action="{% url 'staff:member_password' member.pk %}" class="mt-4">{% csrf_token %}<button class="link-button" type="submit">Email a link to set a password</button></form>{% endif %}
+    {% endif %}
+  </section>
+</div>
+
+<section class="card card--flush mt-5" aria-labelledby="fees-h">
+  <div class="card-head card-head--pad"><h2 id="fees-h" class="h3">Fees</h2><span class="num"><strong>{{ standing.outstanding_fees|money }}</strong> outstanding</span></div>
+  {% if fees %}
+  <table class="table table--cards">
+    <thead><tr><th>Reason</th><th>Book</th><th>Date</th><th class="num">Amount</th><th>Status</th><th></th></tr></thead>
+    <tbody>{% for fee in fees %}
+      <tr>
+        <td class="td-primary">{{ fee.get_kind_display }}{% if fee.days_overdue %}<div class="small muted">{{ fee.days_overdue }} days overdue</div>{% endif %}</td>
+        <td data-label="Book">{% if fee.loan_id %}{{ fee.loan.copy.book.title }}{% else %}—{% endif %}</td>
+        <td data-label="Date">{{ fee.created_at|short_date }}</td>
+        <td data-label="Amount" class="num">{{ fee.amount|money }}{% if fee.amount_paid and fee.status == "pending" %}<div class="small muted">{{ fee.outstanding|money }} left</div>{% endif %}</td>
+        <td data-label="Status">{% badge fee.status fee.get_status_display %}</td>
+        <td data-label="" class="td-actions right"><a class="btn btn--sm" href="{% url 'staff:fee' fee.pk %}">Open</a></td>
+      </tr>
+    {% endfor %}</tbody>
+  </table>
+  {% else %}{% include "components/empty.html" with icon="coins" title="No fees" compact=True %}{% endif %}
+  {% if "fees.manage" in caps %}
+  <div class="grid-2 card-head--pad">
+    {% if standing.outstanding_fees %}
+    <form method="post" action="{% url 'staff:member_settle' member.pk %}" class="stack-sm">{% csrf_token %}
+      <h3>Record payment of all fees ({{ standing.outstanding_fees|money }})</h3>
+      <div class="form-row">
+        <div class="field"><label for="{{ settle_form.method.id_for_label }}">Method</label>{{ settle_form.method }}</div>
+        <div class="field"><label for="{{ settle_form.paid_on.id_for_label }}">Date</label>{{ settle_form.paid_on }}</div>
+      </div>
+      <div class="field"><label for="{{ settle_form.reference.id_for_label }}">Receipt / reference</label>{{ settle_form.reference }}</div>
+      <button class="btn btn--primary" type="submit">{% icon "check" %} Mark all as paid</button>
+    </form>
+    {% endif %}
+    <details>
+      <summary class="btn btn--sm">{% icon "plus" %} Add a fee (damage, other)</summary>
+      <form method="post" action="{% url 'staff:member_add_fee' member.pk %}" class="stack-sm mt-3">{% csrf_token %}
+        <div class="form-row">
+          <div class="field"><label for="{{ fee_form.kind.id_for_label }}">Type</label>{{ fee_form.kind }}</div>
+          <div class="field"><label for="{{ fee_form.amount.id_for_label }}">Amount</label>{{ fee_form.amount }}</div>
+        </div>
+        <div class="field"><label for="{{ fee_form.description.id_for_label }}">Description</label>{{ fee_form.description }}</div>
+        <button class="btn" type="submit">Add fee</button>
+      </form>
+    </details>
+  </div>
+  {% endif %}
+</section>
+
+<div class="grid-2 mt-5">
+  <section class="card card--flush" aria-labelledby="hist-h">
+    <div class="card-head card-head--pad"><h2 id="hist-h" class="h3">Borrowing history</h2></div>
+    {% if history %}
+    <table class="table table--cards"><tbody>{% for l in history %}
+      <tr><td class="td-primary">{{ l.copy.book.title }}</td><td data-label="Borrowed" class="small">{{ l.borrowed_at|short_date }}</td><td data-label="Returned" class="small">{% if l.status == "lost" %}{% badge "lost" "Lost" %}{% else %}{{ l.returned_at|short_date }}{% endif %}</td></tr>
+    {% endfor %}</tbody></table>
+    {% else %}{% include "components/empty.html" with icon="history" title="No history yet" compact=True %}{% endif %}
+  </section>
+  <section class="card card--flush" aria-labelledby="mail-h">
+    <div class="card-head card-head--pad"><h2 id="mail-h" class="h3">Recent emails</h2></div>
+    {% if emails %}
+    <table class="table table--cards"><tbody>{% for e in emails %}
+      <tr><td class="td-primary">{{ e.subject }}</td><td data-label="Sent" class="small">{{ e.created_at|short_date }}</td><td data-label="Status">{% badge e.status e.get_status_display %}</td></tr>
+    {% endfor %}</tbody></table>
+    {% else %}{% include "components/empty.html" with icon="mail" title="No emails sent" compact=True %}{% endif %}
+  </section>
+</div>
+{% endblock %}

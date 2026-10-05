@@ -1,0 +1,3 @@
+{% extends "errors/layout.html" %}
+{% block title %}Please try again{% endblock %}
+{% block message %}{% include "components/empty.html" with icon="refresh" title="This page expired" text="For your security, forms expire after a while. Go back, refresh the page and try again." %}{% endblock %}

@@ -1,0 +1,13 @@
+{% autoescape off %}Hello {{ member.user.first_name }},
+
+Your library book is overdue.
+
+{{ book.title }}
+Due: {{ loan.due_date|date:'j F Y' }}
+Overdue: {{ quote.days_overdue }} day{{ quote.days_overdue|pluralize }}
+Current estimated fee: {{ currency }} {{ quote.amount|floatformat:2 }}
+
+The fee may continue increasing until the book is returned. Please return it as soon as you can.
+
+— {{ library_name }}
+{% endautoescape %}

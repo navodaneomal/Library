@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Library setup{% endblock %}
+{% block css %}<link rel="stylesheet" href="{% static 'css/site.css' %}">{% endblock %}
+{% block body %}
+<main id="main" class="container auth" tabindex="-1">
+  <div class="auth__card container--narrow">
+    <div class="text-center mb-4"><span class="brand"><span class="brand__mark">{% icon "book" %}</span><span>Library Setup</span></span></div>
+    <div class="card">
+      <h1>Welcome</h1>
+      <p class="muted">Let's create your library. This takes about a minute and only happens once.</p>
+      <form method="post" novalidate class="mt-4">{% csrf_token %}
+        {% include "components/form_errors.html" %}
+        <fieldset>
+          <legend>Your library</legend>
+          {% include "components/field.html" with field=form.library_name %}
+          <div class="form-row">{% include "components/field.html" with field=form.currency %}{% include "components/field.html" with field=form.loan_period_days %}</div>
+          {% include "components/field.html" with field=form.late_fee_per_day %}
+        </fieldset>
+        <fieldset class="mt-5">
+          <legend>Administrator account</legend>
+          {% include "components/field.html" with field=form.admin_name %}
+          {% include "components/field.html" with field=form.admin_email %}
+          {% include "components/field.html" with field=form.admin_password %}
+          {% if form.setup_token %}{% include "components/field.html" with field=form.setup_token %}{% endif %}
+        </fieldset>
+        <div class="form-actions"><button class="btn btn--primary btn--lg btn--block" type="submit">Create library</button></div>
+      </form>
+    </div>
+    <p class="auth__alt small">Everything can be changed later under Settings.</p>
+  </div>
+</main>
+{% endblock %}

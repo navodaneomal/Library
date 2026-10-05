@@ -1,0 +1,26 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}Staff accounts{% endblock %}
+{% block content %}
+<div class="staff-head">
+  <div><h1>Staff accounts</h1><p><strong>Assistants</strong> lend, return and manage reservations. <strong>Librarians</strong> also manage books, members, fees and inventory. <strong>Administrators</strong> can change settings.</p></div>
+  <a class="btn btn--primary" href="{% url 'staff:staff_new' %}">{% icon "plus" %} Add staff</a>
+</div>
+<section class="card card--flush">
+  <table class="table table--cards">
+    <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Last sign-in</th><th></th></tr></thead>
+    <tbody>{% for u in users %}
+      <tr>
+        <td class="td-primary"><div class="row"><span class="avatar">{{ u.full_name|initials }}</span><strong>{{ u.full_name }}</strong>{% if u.pk == user.pk %}<span class="pill">You</span>{% endif %}</div></td>
+        <td data-label="Email" class="small">{{ u.email }}</td>
+        <td data-label="Role">{{ u.get_role_display }}</td>
+        <td data-label="Status">{% if u.is_active %}{% badge "active" "Active" %}{% else %}{% badge "inactive" "Disabled" %}{% endif %}</td>
+        <td data-label="Last sign-in" class="small">{{ u.last_login|short_date|default:"Never" }}</td>
+        <td data-label="" class="td-actions right"><div class="row row--end">
+          <a class="btn btn--sm" href="{% url 'staff:staff_edit' u.pk %}">Edit</a>
+          <form method="post" action="{% url 'staff:staff_invite' u.pk %}">{% csrf_token %}<button class="btn btn--sm btn--ghost" type="submit">Send password link</button></form>
+        </div></td>
+      </tr>
+    {% endfor %}</tbody>
+  </table>
+</section>
+{% endblock %}

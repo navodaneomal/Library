@@ -1,0 +1,12 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}Inventory — {{ session.name }}{% endblock %}
+{% block body_attrs %} data-scan-station{% endblock %}
+{% block content %}
+<div class="staff-head">
+  <div><nav class="breadcrumb"><a href="{% url 'staff:inventory' %}">Inventory</a></nav><h1>{{ session.name }}</h1><p>{% if session.scope_prefix %}Shelves starting with <span class="mono">{{ session.scope_prefix }}</span> · {% endif %}{{ expected }} copies expected on the shelves.</p></div>
+  <form method="post" action="{% url 'staff:inventory_complete' session.pk %}" data-confirm="Finish this inventory? Anything not scanned will be listed as missing.">{% csrf_token %}<button class="btn btn--primary" type="submit">{% icon "check" %} Complete inventory</button></form>
+</div>
+<div id="station">{% include "staff/inventory/_station.html" %}</div>
+{% include "components/camera_dialog.html" %}
+{% endblock %}
+{% block staff_scripts %}<script src="{% static 'js/scanner.js' %}" defer></script><script src="{% static 'js/camera.js' %}" defer></script>{% endblock %}

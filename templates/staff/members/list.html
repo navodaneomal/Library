@@ -1,0 +1,30 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}Members{% endblock %}
+{% block content %}
+<div class="staff-head">
+  <div><h1>Members</h1><p>{{ total|intcomma }} registered members.</p></div>
+  {% if "members.manage" in caps %}<a class="btn btn--primary" href="{% url 'staff:member_new' %}">{% icon "plus" %} Register member</a>{% endif %}
+</div>
+<form class="toolbar" method="get">
+  <div class="field grow"><label for="mq">Search</label><input id="mq" type="search" name="q" value="{{ query }}" placeholder="Name, member ID, email, phone or scan a card" autofocus></div>
+  <div class="field"><label for="ms">Status</label><select id="ms" name="status"><option value="">Any</option>{% for value, label in statuses %}<option value="{{ value }}" {% if value == status %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+  <button class="btn" type="submit">Search</button>
+</form>
+<section class="card card--flush">
+  {% if page.object_list %}
+  <table class="table table--cards">
+    <thead><tr><th>Member</th><th>Member ID</th><th>Contact</th><th class="num">On loan</th><th>Status</th></tr></thead>
+    <tbody>{% for m in page.object_list %}
+      <tr>
+        <td class="td-primary"><div class="row"><span class="avatar">{{ m.user.full_name|initials }}</span><a class="table-title" href="{% url 'staff:member' m.pk %}">{{ m.user.full_name }}</a></div></td>
+        <td data-label="Member ID" class="mono small">{{ m.member_id }}</td>
+        <td data-label="Contact" class="small">{{ m.user.email|default:"" }}{% if m.user.email and m.phone %}<br>{% endif %}{{ m.phone }}</td>
+        <td data-label="On loan" class="num">{{ m.active_loans }}</td>
+        <td data-label="Status">{% badge m.status m.get_status_display %}</td>
+      </tr>
+    {% endfor %}</tbody>
+  </table>
+  {% else %}{% include "components/empty.html" with icon="users" title="No members found" text="Search by name, member ID, email or phone — or scan a library card." %}{% endif %}
+</section>
+{% include "components/pagination.html" %}
+{% endblock %}

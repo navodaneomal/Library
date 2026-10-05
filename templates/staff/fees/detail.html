@@ -1,0 +1,47 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}Fee — {{ fee.member.user.full_name }}{% endblock %}
+{% block content %}
+<div class="staff-head">
+  <div><nav class="breadcrumb"><a href="{% url 'staff:fees' %}">Fees</a> / <a href="{% url 'staff:member' fee.member_id %}">{{ fee.member.user.full_name }}</a></nav>
+    <h1>{{ fee.amount|money }}</h1><p>{{ fee.description }}</p></div>
+  {% badge fee.status fee.get_status_display %}
+</div>
+<div class="grid-2">
+  <section class="card">
+    <dl class="kv">
+      <dt>Member</dt><dd><a href="{% url 'staff:member' fee.member_id %}">{{ fee.member.user.full_name }}</a> <span class="mono small muted">{{ fee.member.member_id }}</span></dd>
+      <dt>Reason</dt><dd>{{ fee.get_kind_display }}</dd>
+      {% if fee.loan_id %}<dt>Book</dt><dd>{{ fee.loan.copy.book.title }} <span class="mono small muted">{{ fee.loan.copy.copy_code }}</span></dd>{% endif %}
+      {% if fee.days_overdue %}<dt>Days overdue</dt><dd>{{ fee.days_overdue }}</dd>{% endif %}
+      <dt>Generated</dt><dd>{{ fee.created_at|nice_date }}</dd>
+      <dt>Amount</dt><dd class="num">{{ fee.amount|money }}</dd>
+      <dt>Paid</dt><dd class="num">{{ fee.amount_paid|money }}</dd>
+      <dt>Outstanding</dt><dd class="num"><strong>{{ fee.outstanding|money }}</strong></dd>
+      {% if fee.status == "waived" %}<dt>Waived</dt><dd>{{ fee.waive_reason }}{% if fee.waived_by %} — {{ fee.waived_by.full_name }}{% endif %}</dd>{% endif %}
+    </dl>
+    {% if payments %}
+    <h2 class="h3 mt-5 mb-2">Payments</h2>
+    <ul class="timeline">{% for p in payments %}<li><strong>{{ p.amount|money }}</strong> · {{ p.get_method_display }} · {{ p.paid_on|short_date }}{% if p.reference %} · ref {{ p.reference }}{% endif %}{% if p.recorded_by %}<div class="small muted">Recorded by {{ p.recorded_by.full_name }}</div>{% endif %}</li>{% endfor %}</ul>
+    {% endif %}
+  </section>
+  {% if fee.status == "pending" and "fees.manage" in caps %}
+  <div class="stack">
+    <section class="card" aria-labelledby="pay-h">
+      <h2 id="pay-h" class="h3 mb-4">Record payment</h2>
+      <form method="post" action="{% url 'staff:fee_pay' fee.pk %}" novalidate>{% csrf_token %}
+        <div class="form-row">{% include "components/field.html" with field=payment_form.amount %}{% include "components/field.html" with field=payment_form.method %}</div>
+        <div class="form-row">{% include "components/field.html" with field=payment_form.paid_on %}{% include "components/field.html" with field=payment_form.reference %}</div>
+        <div class="form-actions"><button class="btn btn--primary" type="submit">{% icon "check" %} Mark as paid</button></div>
+      </form>
+    </section>
+    <section class="card" aria-labelledby="waive-h">
+      <h2 id="waive-h" class="h3 mb-4">Waive fee</h2>
+      <form method="post" action="{% url 'staff:fee_waive' fee.pk %}" novalidate data-confirm="Waive this fee? This is recorded in the audit log.">{% csrf_token %}
+        {% include "components/field.html" with field=waive_form.reason %}
+        <div class="form-actions"><button class="btn btn--danger" type="submit">Waive</button></div>
+      </form>
+    </section>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% if form.non_field_errors %}
+<div class="alert alert--error" role="alert">{% icon "alert" %}
+  <div>{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>
+</div>
+{% elif form.errors %}
+<div class="alert alert--error" role="alert">{% icon "alert" %}<p>Please check the highlighted fields.</p></div>
+{% endif %}

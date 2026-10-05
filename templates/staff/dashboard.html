@@ -1,0 +1,72 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}Dashboard{% endblock %}
+{% block content %}
+<div class="staff-head">
+  <div><h1>{% greeting user.first_name %}</h1><p>What's happening in {{ library.library_name }} right now.</p></div>
+  <div class="row">
+    <a class="btn" href="{% url 'staff:today' %}">{% icon "calendar" %} Today</a>
+    <a class="btn btn--primary" href="{% url 'staff:borrow' %}">{% icon "refresh" %} Circulation desk</a>
+  </div>
+</div>
+
+<section aria-label="Library figures" class="grid-4">
+  <a class="stat" href="{% url 'staff:books' %}"><div class="stat__label">{% icon "books" %} Books</div><div class="stat__value">{{ metrics.copies|intcomma }}</div><div class="stat__hint">{{ metrics.titles|intcomma }} titles</div></a>
+  <a class="stat stat--success" href="{% url 'staff:books' %}?available=1"><div class="stat__label">{% icon "check-circle" %} Available</div><div class="stat__value">{{ metrics.available|intcomma }}</div><div class="stat__hint">{{ metrics.on_hold }} on the hold shelf</div></a>
+  <a class="stat" href="{% url 'staff:reports' %}"><div class="stat__label">{% icon "book" %} Currently borrowed</div><div class="stat__value">{{ metrics.borrowed|intcomma }}</div><div class="stat__hint">&nbsp;</div></a>
+  <a class="stat{% if metrics.overdue %} stat--danger{% endif %}" href="{% url 'staff:overdue' %}"><div class="stat__label">{% icon "clock" %} Overdue</div><div class="stat__value">{{ metrics.overdue|intcomma }}</div><div class="stat__hint">{{ metrics.overdue_members }} member{{ metrics.overdue_members|pluralize }}</div></a>
+  <a class="stat" href="{% url 'staff:reservations' %}"><div class="stat__label">{% icon "bookmark" %} Reservations</div><div class="stat__value">{{ metrics.reservations|intcomma }}</div><div class="stat__hint">waiting or ready</div></a>
+  <a class="stat{% if metrics.outstanding %} stat--warning{% endif %}" href="{% url 'staff:fees' %}"><div class="stat__label">{% icon "coins" %} Outstanding fees</div><div class="stat__value stat__value--sm num">{{ metrics.outstanding|money }}</div><div class="stat__hint">unpaid</div></a>
+</section>
+
+<div class="grid-2 mt-5">
+  <section class="card" aria-labelledby="today-h">
+    <div class="card-head"><h2 id="today-h" class="h3">Today's activity</h2><a class="small" href="{% url 'staff:today' %}">Open Today</a></div>
+    <div class="grid-4">
+      <div><div class="stat__value stat__value--sm">{{ activity.borrowed }}</div><div class="small muted">books borrowed</div></div>
+      <div><div class="stat__value stat__value--sm">{{ activity.returned }}</div><div class="small muted">books returned</div></div>
+      <div><div class="stat__value stat__value--sm">{{ activity.reservations }}</div><div class="small muted">reservations</div></div>
+      <div><div class="stat__value stat__value--sm">{{ metrics.overdue_members }}</div><div class="small muted">overdue accounts</div></div>
+    </div>
+    <hr>
+    <div class="row row--between">
+      <div><strong>Library pulse</strong><div class="small muted">{{ metrics.pulse }}% of books are currently available.</div></div>
+      <span class="badge badge--{% if metrics.pulse >= 60 %}success{% elif metrics.pulse >= 30 %}warning{% else %}danger{% endif %}"><span class="badge__dot"></span>{{ metrics.pulse }}%</span>
+    </div>
+    <div class="meter mt-3" role="img" aria-label="{{ metrics.pulse }} percent available"><span class="{{ metrics.pulse|width_class }}"></span></div>
+  </section>
+
+  <section class="card" aria-labelledby="ins-h">
+    <div class="card-head"><h2 id="ins-h" class="h3">Insights</h2><span class="small muted">From your library's data</span></div>
+    {% if insights %}
+    <div class="insights">
+      {% for item in insights %}<div class="insight">{% icon item.icon %}<span>{{ item.text }}</span></div>{% endfor %}
+    </div>
+    {% else %}
+      {% include "components/empty.html" with icon="sparkles" title="Quiet so far" text="Insights appear as books are borrowed and returned." compact=True %}
+    {% endif %}
+  </section>
+</div>
+
+<div class="grid-2 mt-5">
+  <section class="card card--flush" aria-labelledby="rl-h">
+    <div class="card-head card-head--pad"><h2 id="rl-h" class="h3">Recently borrowed</h2></div>
+    {% if recent_loans %}
+    <table class="table table--cards"><tbody>
+      {% for loan in recent_loans %}
+      <tr><td class="td-primary"><a class="table-title" href="{% url 'staff:copy' loan.copy_id %}">{{ loan.copy.book.title }}</a><div class="small muted">{{ loan.member.user.full_name }}</div></td><td data-label="When" class="right small muted">{{ loan.borrowed_at|ago }}</td></tr>
+      {% endfor %}
+    </tbody></table>
+    {% else %}{% include "components/empty.html" with title="No loans yet" compact=True %}{% endif %}
+  </section>
+  <section class="card card--flush" aria-labelledby="rr-h">
+    <div class="card-head card-head--pad"><h2 id="rr-h" class="h3">Recently returned</h2></div>
+    {% if recent_returns %}
+    <table class="table table--cards"><tbody>
+      {% for loan in recent_returns %}
+      <tr><td class="td-primary"><a class="table-title" href="{% url 'staff:copy' loan.copy_id %}">{{ loan.copy.book.title }}</a><div class="small muted">{{ loan.member.user.full_name }}</div></td><td data-label="When" class="right small muted">{{ loan.returned_at|ago }}</td></tr>
+      {% endfor %}
+    </tbody></table>
+    {% else %}{% include "components/empty.html" with icon="return" title="No returns yet" compact=True %}{% endif %}
+  </section>
+</div>
+{% endblock %}

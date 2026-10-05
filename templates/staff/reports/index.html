@@ -1,0 +1,14 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}Reports{% endblock %}
+{% block content %}
+<div class="staff-head"><div><h1>Reports</h1><p>Every report can be exported as CSV for spreadsheets.</p></div></div>
+<div class="grid-3">
+  {% for slug, info in reports.items %}
+  <a class="stat" href="{% url 'staff:report' slug %}">
+    <div class="stat__label">{% icon "list" %} Report</div>
+    <div class="stat__value stat__value--sm">{{ info.0 }}</div>
+    <div class="stat__hint">{{ info.1 }}</div>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}

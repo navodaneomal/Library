@@ -1,0 +1,76 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}Reservations{% endblock %}
+{% block content %}
+<div class="staff-head"><div><h1>Reservations</h1><p>Strictly first come, first served. Uncollected holds pass to the next member automatically after {{ library.reservation_hold_days }} day{{ library.reservation_hold_days|pluralize }}.</p></div></div>
+
+<section class="card card--flush" aria-labelledby="pull-h">
+  <div class="card-head card-head--pad"><h2 id="pull-h" class="h3">{% icon "map-pin" %} To pull from the shelves ({{ to_pull|length }})</h2></div>
+  {% if to_pull %}
+  <table class="table table--cards">
+    <thead><tr><th>Shelf</th><th>Book</th><th>Copy</th><th>Member</th><th>Collect by</th><th></th></tr></thead>
+    <tbody>{% for r in to_pull %}
+      <tr>
+        <td class="td-primary mono"><strong>{{ r.copy.shelf_location|default:"—" }}</strong></td>
+        <td data-label="Book">{{ r.book.title }}</td>
+        <td data-label="Copy" class="mono small">{{ r.copy.copy_code }}</td>
+        <td data-label="Member"><a href="{% url 'staff:member' r.member_id %}">{{ r.member.user.full_name }}</a></td>
+        <td data-label="Collect by">{{ r.collect_by|short_date }}</td>
+        <td data-label="" class="td-actions right"><div class="row row--end">
+          <form method="post" action="{% url 'staff:reservation_picked' r.pk %}">{% csrf_token %}<button class="btn btn--sm btn--soft" type="submit">{% icon "check" %} On hold shelf</button></form>
+          <form method="post" action="{% url 'staff:reservation_cancel' r.pk %}" data-confirm="Cancel this reservation? The copy will go to the next member or back on the shelf.">{% csrf_token %}<button class="btn btn--sm btn--ghost" type="submit">Cancel</button></form>
+        </div></td>
+      </tr>
+    {% endfor %}</tbody>
+  </table>
+  {% else %}{% include "components/empty.html" with icon="check-circle" title="Nothing to pull" compact=True %}{% endif %}
+</section>
+
+<section class="card card--flush mt-5" aria-labelledby="hold-h">
+  <div class="card-head card-head--pad"><h2 id="hold-h" class="h3">{% icon "bookmark" %} Ready for collection ({{ on_shelf|length }})</h2></div>
+  {% if on_shelf %}
+  <table class="table table--cards">
+    <thead><tr><th>Book</th><th>Member</th><th>Ready since</th><th>Collect by</th><th></th></tr></thead>
+    <tbody>{% for r in on_shelf %}
+      <tr>
+        <td class="td-primary">{{ r.book.title }}<div class="small muted mono">{{ r.copy.copy_code }}</div></td>
+        <td data-label="Member"><a href="{% url 'staff:member' r.member_id %}">{{ r.member.user.full_name }}</a> <span class="small muted mono">{{ r.member.member_id }}</span></td>
+        <td data-label="Ready since">{{ r.ready_at|short_date }}</td>
+        <td data-label="Collect by">{% if r.expires_at < now %}{% badge "overdue" "Expired" %}{% else %}{{ r.collect_by|short_date }}{% endif %}</td>
+        <td data-label="" class="td-actions right"><form method="post" action="{% url 'staff:reservation_cancel' r.pk %}" data-confirm="Cancel this reservation?">{% csrf_token %}<button class="btn btn--sm btn--ghost" type="submit">Cancel</button></form></td>
+      </tr>
+    {% endfor %}</tbody>
+  </table>
+  {% else %}{% include "components/empty.html" with icon="bookmark" title="The hold shelf is empty" compact=True %}{% endif %}
+</section>
+
+<section class="card card--flush mt-5" aria-labelledby="wait-h">
+  <div class="card-head card-head--pad"><h2 id="wait-h" class="h3">{% icon "list" %} Waiting ({{ waiting_rows|length }})</h2></div>
+  {% if waiting_rows %}
+  <table class="table table--cards">
+    <thead><tr><th>Book</th><th class="num">Position</th><th>Member</th><th>Reserved</th><th></th></tr></thead>
+    <tbody>{% for row in waiting_rows %}{% with r=row.reservation %}
+      <tr>
+        <td class="td-primary"><a href="{% url 'staff:book' r.book_id %}">{{ r.book.title }}</a></td>
+        <td data-label="Position" class="num"><strong>{{ row.position }}</strong></td>
+        <td data-label="Member"><a href="{% url 'staff:member' r.member_id %}">{{ r.member.user.full_name }}</a></td>
+        <td data-label="Reserved">{{ r.created_at|short_date }}</td>
+        <td data-label="" class="td-actions right"><form method="post" action="{% url 'staff:reservation_cancel' r.pk %}" data-confirm="Cancel this reservation?">{% csrf_token %}<button class="btn btn--sm btn--ghost" type="submit">Cancel</button></form></td>
+      </tr>
+    {% endwith %}{% endfor %}</tbody>
+  </table>
+  {% else %}{% include "components/empty.html" with icon="list" title="No one is waiting" compact=True %}{% endif %}
+</section>
+
+{% if closed.object_list %}
+<section class="card card--flush mt-5" aria-labelledby="closed-h">
+  <div class="card-head card-head--pad"><h2 id="closed-h" class="h3">Recently closed</h2></div>
+  <table class="table table--cards">
+    <thead><tr><th>Book</th><th>Member</th><th>Status</th><th>Closed</th></tr></thead>
+    <tbody>{% for r in closed.object_list %}
+      <tr><td class="td-primary">{{ r.book.title }}</td><td data-label="Member">{{ r.member.user.full_name }}</td><td data-label="Status">{% badge r.status r.get_status_display %}</td><td data-label="Closed">{{ r.closed_at|short_date|default:"—" }}</td></tr>
+    {% endfor %}</tbody>
+  </table>
+</section>
+{% with page=closed %}{% include "components/pagination.html" %}{% endwith %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,4 @@
+{% autoescape off %}This is a test email. If you can read it, email delivery is working.
+
+— {{ library_name }}
+{% endautoescape %}

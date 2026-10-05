@@ -1,0 +1,13 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}{% if is_new %}Add staff{% else %}Edit {{ account.full_name }}{% endif %}{% endblock %}
+{% block content %}
+<div class="staff-head"><div><nav class="breadcrumb"><a href="{% url 'staff:staff_users' %}">Staff accounts</a></nav><h1>{% if is_new %}Add a staff member{% else %}{{ account.full_name }}{% endif %}</h1>{% if is_new %}<p>They'll receive an email with a link to choose their own password.</p>{% endif %}</div></div>
+<form method="post" novalidate class="card container--narrow">{% csrf_token %}
+  {% include "components/form_errors.html" %}
+  {% include "components/field.html" with field=form.full_name %}
+  {% include "components/field.html" with field=form.email %}
+  {% include "components/field.html" with field=form.role %}
+  {% if form.is_active %}<div class="mt-4">{% include "components/field.html" with field=form.is_active %}</div>{% endif %}
+  <div class="form-actions"><button class="btn btn--primary" type="submit">{% if is_new %}Add and send invite{% else %}Save{% endif %}</button><a class="btn" href="{% url 'staff:staff_users' %}">Cancel</a></div>
+</form>
+{% endblock %}

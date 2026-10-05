@@ -1,0 +1,112 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}{{ book.title }}{% endblock %}
+{% block content %}
+<div class="staff-head">
+  <div class="row row--top">
+    {% include "components/cover.html" with book=book size="md" %}
+    <div>
+      <nav class="breadcrumb"><a href="{% url 'staff:books' %}">Books</a></nav>
+      <h1>{{ book.title }}</h1>
+      <p>{{ book.author_names|default:"Unknown author" }}{% if book.publication_year %} · {{ book.publication_year }}{% endif %}</p>
+      <div class="row mt-3">{% badge availability.state availability.label %}<span class="small muted">{{ availability.available }} of {{ availability.total }} available</span>{% if book.is_archived %}{% badge "withdrawn" "Archived" %}{% endif %}{% if book.reference_only %}<span class="pill">Reference only</span>{% endif %}</div>
+    </div>
+  </div>
+  <div class="row">
+    {% if not book.is_archived %}<a class="btn" href="{{ book.get_absolute_url }}">{% icon "external" %} Public page</a>{% endif %}
+    {% if "books.manage" in caps %}
+      <a class="btn" href="{% url 'staff:labels' %}?book={{ book.pk }}">{% icon "printer" %} Labels</a>
+      <a class="btn" href="{% url 'staff:book_edit' book.pk %}">{% icon "edit" %} Edit</a>
+      <a class="btn btn--primary" href="{% url 'staff:copy_add' book.pk %}">{% icon "plus" %} Add copy</a>
+    {% endif %}
+  </div>
+</div>
+
+{% if label_ids %}
+<div class="alert alert--success mb-4">{% icon "printer" %}<div class="grow"><p>New copies are registered. Print barcode labels for them now?</p></div><a class="btn btn--primary btn--sm" href="{% url 'staff:labels' %}?copies={{ label_ids }}">Print labels</a></div>
+{% endif %}
+
+<section class="card card--flush" aria-labelledby="copies-h">
+  <div class="card-head card-head--pad"><h2 id="copies-h" class="h3">Copies ({{ copy_rows|length }})</h2><span class="small muted">Each copy is tracked on its own</span></div>
+  {% if copy_rows %}
+  <table class="table table--cards">
+    <thead><tr><th>Copy</th><th>Barcode</th><th>Shelf</th><th>Condition</th><th>Status</th><th>With / for</th><th></th></tr></thead>
+    <tbody>{% for row in copy_rows %}{% with c=row.copy %}
+      <tr>
+        <td class="td-primary"><a class="table-title" href="{% url 'staff:copy' c.pk %}">{{ c.label }}</a><div class="small muted mono">{{ c.copy_code }}</div></td>
+        <td data-label="Barcode" class="mono small">{{ c.barcode }}</td>
+        <td data-label="Shelf" class="mono small">{{ c.shelf_location|default:"—" }}</td>
+        <td data-label="Condition">{{ c.get_condition_display }}</td>
+        <td data-label="Status">{% badge c.status c.get_status_display %}</td>
+        <td data-label="With / for">
+          {% if row.loan %}<a href="{% url 'staff:member' row.loan.member_id %}">{{ row.loan.member.user.full_name }}</a><div class="small">{% include "components/due.html" with date=row.loan.due_date %}</div>
+          {% elif row.hold %}<span class="hold-tag small">{% icon "bookmark" %} {{ row.hold.member.user.full_name }}</span>
+          {% else %}<span class="muted">—</span>{% endif %}
+        </td>
+        <td data-label="" class="td-actions right">{% if "books.manage" in caps %}<a class="btn btn--sm btn--ghost" href="{% url 'staff:copy_edit' c.pk %}">Edit</a>{% endif %}</td>
+      </tr>
+    {% endwith %}{% endfor %}</tbody>
+  </table>
+  {% else %}
+    {% url 'staff:copy_add' book.pk as add_url %}
+    {% include "components/empty.html" with title="No copies yet" text="Register the first physical copy by scanning its barcode." action_url=add_url action_label="Add a copy" compact=True %}
+  {% endif %}
+</section>
+
+<div class="grid-2 mt-5">
+  <section class="card" aria-labelledby="info-h">
+    <div class="card-head"><h2 id="info-h" class="h3">Book information</h2></div>
+    <dl class="kv">
+      <dt>ISBN</dt><dd class="mono">{{ book.isbn|default:"—" }}</dd>
+      <dt>Publisher</dt><dd>{{ book.publisher.name|default:"—" }}</dd>
+      <dt>Category</dt><dd>{{ book.category.name|default:"—" }}</dd>
+      <dt>Language</dt><dd>{{ book.language }}</dd>
+      <dt>Loan period</dt><dd>{% if book.loan_period_days %}{{ book.loan_period_days }} days (custom){% else %}{{ library.loan_period_days }} days (default){% endif %}</dd>
+      <dt>Replacement</dt><dd>{% if book.replacement_cost is not None %}{{ book.replacement_cost|money }}{% else %}{{ library.default_replacement_fee|money }} (default){% endif %}</dd>
+      <dt>Times borrowed</dt><dd>{{ book.times_borrowed }}</dd>
+      <dt>Added</dt><dd>{{ book.created_at|short_date }}</dd>
+    </dl>
+  </section>
+  <section class="card card--flush" aria-labelledby="queue-h">
+    <div class="card-head card-head--pad"><h2 id="queue-h" class="h3">Reservation queue</h2><span class="small muted">First come, first served</span></div>
+    {% if queue %}
+    <table class="table table--cards"><tbody>{% for r in queue %}
+      <tr><td class="td-primary"><strong>{{ forloop.counter }}.</strong> <a href="{% url 'staff:member' r.member_id %}">{{ r.member.user.full_name }}</a></td><td data-label="Since" class="right small muted">{{ r.created_at|short_date }}</td></tr>
+    {% endfor %}</tbody></table>
+    {% else %}{% include "components/empty.html" with icon="bookmark" title="Nobody waiting" compact=True %}{% endif %}
+  </section>
+</div>
+
+<section class="card card--flush mt-5" aria-labelledby="hist-h">
+  <div class="card-head card-head--pad"><h2 id="hist-h" class="h3">Recent history</h2></div>
+  {% if history %}
+  <table class="table table--cards">
+    <thead><tr><th>Member</th><th>Copy</th><th>Borrowed</th><th>Returned</th><th>Fee</th></tr></thead>
+    <tbody>{% for loan in history %}
+      <tr>
+        <td class="td-primary"><a href="{% url 'staff:member' loan.member_id %}">{{ loan.member.user.full_name }}</a></td>
+        <td data-label="Copy" class="mono small">{{ loan.copy.copy_code }}</td>
+        <td data-label="Borrowed">{{ loan.borrowed_at|short_date }}</td>
+        <td data-label="Returned">{% if loan.status == "active" %}{% include "components/due.html" with date=loan.due_date %}{% elif loan.status == "lost" %}{% badge "lost" "Lost" %}{% else %}{{ loan.returned_at|short_date }}{% endif %}</td>
+        <td data-label="Fee">{% for fee in loan.fees.all %}{{ fee.amount|money }} {% empty %}—{% endfor %}</td>
+      </tr>
+    {% endfor %}</tbody>
+  </table>
+  {% else %}{% include "components/empty.html" with icon="history" title="Never borrowed yet" compact=True %}{% endif %}
+</section>
+
+{% if "books.manage" in caps %}
+<section class="card mt-5" aria-labelledby="danger-h">
+  <h2 id="danger-h" class="h3">Remove from catalogue</h2>
+  {% if book.is_archived %}
+    <p class="muted">This book is archived and hidden from members.</p>
+    <form method="post" action="{% url 'staff:book_archive' book.pk %}">{% csrf_token %}<button class="btn" name="action" value="restore" type="submit">{% icon "refresh" %} Restore to catalogue</button></form>
+  {% elif can_delete %}
+    <p class="muted">This book has never been borrowed, so it can be deleted completely.</p>
+    <form method="post" action="{% url 'staff:book_delete' book.pk %}" data-confirm="Delete '{{ book.title }}' and all its copies? This can't be undone.">{% csrf_token %}<button class="btn btn--danger" type="submit">{% icon "trash" %} Delete book</button></form>
+  {% else %}
+    <p class="muted">Archiving hides the book from members but keeps its full history.{% if has_active_loans %} Copies on loan must be returned first.{% endif %}</p>
+    <form method="post" action="{% url 'staff:book_archive' book.pk %}" data-confirm="Archive '{{ book.title }}'? Open reservations will be cancelled.">{% csrf_token %}<button class="btn btn--danger" type="submit" {% if has_active_loans %}disabled{% endif %}>{% icon "archive" %} Archive book</button></form>
+  {% endif %}
+</section>
+{% endif %}
+{% endblock %}

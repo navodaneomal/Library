@@ -1,0 +1,66 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}Today{% endblock %}
+{% block content %}
+<div class="staff-head">
+  <div><h1>Today</h1><p>{{ today|nice_date }} — the jobs that need doing.</p></div>
+  <a class="btn btn--primary" href="{% url 'staff:quick_scan' %}">{% icon "zap" %} Quick scan</a>
+</div>
+
+<section class="grid-4" aria-label="Today at a glance">
+  <div class="stat{% if due_today %} stat--warning{% endif %}"><div class="stat__label">Due today</div><div class="stat__value">{{ due_today|length }}</div></div>
+  <a class="stat{% if overdue_count %} stat--danger{% endif %}" href="{% url 'staff:overdue' %}"><div class="stat__label">Overdue</div><div class="stat__value">{{ overdue_count }}</div></a>
+  <a class="stat" href="{% url 'staff:reservations' %}"><div class="stat__label">Reservations ready</div><div class="stat__value">{{ on_hold_shelf|length|add:to_pull.count }}</div><div class="stat__hint">{{ to_pull|length }} to pull · {{ expiring_today }} expiring today</div></a>
+  <div class="stat"><div class="stat__label">Borrowed today</div><div class="stat__value">{{ activity.borrowed }}</div></div>
+  <div class="stat"><div class="stat__label">Returned today</div><div class="stat__value">{{ activity.returned }}</div></div>
+</section>
+
+<section class="card card--flush mt-5" aria-labelledby="pull-h">
+  <div class="card-head card-head--pad"><h2 id="pull-h" class="h3">{% icon "map-pin" %} Pull from the shelves</h2><span class="small muted">Reserved online — place on the hold shelf</span></div>
+  {% if to_pull %}
+  <table class="table table--cards">
+    <thead><tr><th>Shelf</th><th>Book</th><th>Copy</th><th>For</th><th>Collect by</th><th></th></tr></thead>
+    <tbody>{% for r in to_pull %}
+      <tr>
+        <td class="td-primary mono"><strong>{{ r.copy.shelf_location|default:"—" }}</strong></td>
+        <td data-label="Book">{{ r.book.title }}</td>
+        <td data-label="Copy" class="mono small">{{ r.copy.copy_code }}</td>
+        <td data-label="For">{{ r.member.user.full_name }}</td>
+        <td data-label="Collect by">{{ r.collect_by|short_date }}</td>
+        <td data-label="" class="td-actions right"><form method="post" action="{% url 'staff:reservation_picked' r.pk %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn btn--sm btn--soft" type="submit">{% icon "check" %} On hold shelf</button></form></td>
+      </tr>
+    {% endfor %}</tbody>
+  </table>
+  {% else %}{% include "components/empty.html" with icon="check-circle" title="Nothing to pull" text="All reserved books are already on the hold shelf." compact=True %}{% endif %}
+</section>
+
+<div class="grid-2 mt-5">
+  <section class="card card--flush" aria-labelledby="due-h">
+    <div class="card-head card-head--pad"><h2 id="due-h" class="h3">Due today</h2></div>
+    {% if due_today %}
+    <table class="table table--cards"><tbody>{% for loan in due_today %}
+      <tr><td class="td-primary">{{ loan.copy.book.title }}<div class="small muted">{{ loan.member.user.full_name }} · {{ loan.member.member_id }}</div></td><td data-label="Phone" class="right small">{{ loan.member.phone }}</td></tr>
+    {% endfor %}</tbody></table>
+    {% else %}{% include "components/empty.html" with icon="calendar" title="Nothing due today" compact=True %}{% endif %}
+  </section>
+  <section class="card card--flush" aria-labelledby="od-h">
+    <div class="card-head card-head--pad"><h2 id="od-h" class="h3">Most overdue</h2><a class="small" href="{% url 'staff:overdue' %}">All overdue</a></div>
+    {% if overdue %}
+    <table class="table table--cards"><tbody>{% for loan in overdue %}
+      <tr><td class="td-primary"><a class="table-title" href="{% url 'staff:member' loan.member_id %}">{{ loan.member.user.full_name }}</a><div class="small muted">{{ loan.copy.book.title }}</div></td><td data-label="Due" class="right">{% include "components/due.html" with date=loan.due_date %}</td></tr>
+    {% endfor %}</tbody></table>
+    {% else %}{% include "components/empty.html" with icon="check-circle" title="No overdue books" text="Everything is back on time." compact=True %}{% endif %}
+  </section>
+</div>
+
+{% if on_hold_shelf %}
+<section class="card card--flush mt-5" aria-labelledby="hold-h">
+  <div class="card-head card-head--pad"><h2 id="hold-h" class="h3">On the hold shelf</h2></div>
+  <table class="table table--cards">
+    <thead><tr><th>Book</th><th>For</th><th>Collect by</th></tr></thead>
+    <tbody>{% for r in on_hold_shelf %}
+      <tr><td class="td-primary">{{ r.book.title }}<div class="small muted mono">{{ r.copy.copy_code }}</div></td><td data-label="For">{{ r.member.user.full_name }} <span class="small muted mono">{{ r.member.member_id }}</span></td><td data-label="Collect by">{{ r.collect_by|short_date }}</td></tr>
+    {% endfor %}</tbody>
+  </table>
+</section>
+{% endif %}
+{% endblock %}

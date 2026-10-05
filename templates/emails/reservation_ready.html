@@ -1,0 +1,6 @@
+{% extends "emails/base.html" %}
+{% block content %}<p style="margin:0 0 12px;font-size:20px;font-family:Georgia,serif;">📚 Your book is waiting for you.</p>
+<p><strong>{{ book.title }}</strong> is now available for collection.</p>
+{% if collect_by %}<p>Please collect it before <strong>{{ collect_by|date:"j F" }}</strong>.</p>{% endif %}
+<p style="color:#646b66;">Bring your library card — or just tell us your member ID, {{ member.member_id }}.</p>{% endblock %}
+{% block button_label %}View my reservations{% endblock %}

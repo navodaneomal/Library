@@ -1,0 +1,7 @@
+{% autoescape off %}Hello {{ member.user.first_name }},
+
+{{ book.title }} is still waiting for you, but your hold ends on {{ collect_by|date:'j F' }}.
+After that it passes to the next member in the queue.
+
+— {{ library_name }}
+{% endautoescape %}

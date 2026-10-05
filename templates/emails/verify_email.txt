@@ -1,0 +1,10 @@
+{% autoescape off %}Hello {{ user.first_name }},
+
+Please confirm your email address so we can send you reminders and reservation alerts:
+
+{{ link }}
+
+If you didn't create an account, you can ignore this email.
+
+— {{ library_name }}
+{% endautoescape %}

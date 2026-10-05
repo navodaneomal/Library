@@ -1,0 +1,38 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}{{ report.0 }} report{% endblock %}
+{% block content %}
+<div class="staff-head">
+  <div><nav class="breadcrumb"><a href="{% url 'staff:reports' %}">Reports</a></nav><h1>{{ table.title }}</h1><p>{{ report.1 }}</p></div>
+  <a class="btn btn--primary" href="{% query format='csv' %}">{% icon "download" %} Export CSV</a>
+</div>
+{% if uses_dates %}
+<form class="toolbar" method="get">
+  {% include "components/field.html" with field=form.date_from %}
+  {% include "components/field.html" with field=form.date_to %}
+  {% if slug == "borrowing" %}
+    <div class="field"><label for="r-member">Member</label><input id="r-member" type="search" name="member" value="{{ request.GET.member }}" placeholder="Name or member ID"></div>
+    <div class="field"><label for="r-cat">Category</label><select id="r-cat" name="category"><option value="">All</option>{% for c in categories %}<option value="{{ c.slug }}" {% if c.slug == request.GET.category %}selected{% endif %}>{{ c.name }}</option>{% endfor %}</select></div>
+  {% endif %}
+  <button class="btn" type="submit">Update</button>
+</form>
+{% endif %}
+{% if table.totals %}
+<section class="grid-4 mb-4" aria-label="Totals">
+  {% for label, value in table.totals %}<div class="stat"><div class="stat__label">{{ label }}</div><div class="stat__value stat__value--sm num">{% if value|is_money %}{{ value|money }}{% else %}{{ value }}{% endif %}</div></div>{% endfor %}
+</section>
+{% endif %}
+{% if table.note %}<p class="small muted">{{ table.note }}</p>{% endif %}
+<section class="card card--flush">
+  {% if table.rows %}
+  <div class="table-wrap">
+  <table class="table table--cards">
+    <thead><tr>{% for col in table.columns %}<th>{{ col }}</th>{% endfor %}</tr></thead>
+    <tbody>{% for row in table.rows|slice:":500" %}
+      <tr>{% for cell in row %}<td data-label="{{ table.columns|get_index:forloop.counter0 }}"{% if forloop.first %} class="td-primary"{% endif %}>{% if forloop.counter0 in table.money_columns %}{{ cell|money }}{% elif cell.year %}{{ cell|short_date }}{% else %}{{ cell }}{% endif %}</td>{% endfor %}</tr>
+    {% endfor %}</tbody>
+  </table>
+  </div>
+  {% if table.rows|length > 500 %}<p class="small muted container mt-3">Showing the first 500 rows — export CSV for all {{ table.rows|length }}.</p>{% endif %}
+  {% else %}{% include "components/empty.html" with icon="list" title="Nothing to report" text="No records match this period." %}{% endif %}
+</section>
+{% endblock %}

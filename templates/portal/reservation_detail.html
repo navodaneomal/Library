@@ -1,0 +1,41 @@
+{% extends "public/layout.html" %}
+{% block title %}Reservation — {{ reservation.book.title }}{% endblock %}
+{% block content %}
+<div class="container container--narrow">
+  <section class="card mt-6 text-center" aria-labelledby="res-h">
+    {% if is_new %}
+      <div class="check-anim" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div>
+      <h1 id="res-h">Reservation confirmed.</h1>
+      <p class="muted">{% if reservation.status == "ready" %}A copy is being set aside for you.{% else %}You're in the queue — we'll email you as soon as it's your turn.{% endif %}</p>
+    {% else %}
+      <h1 id="res-h">Your reservation</h1>
+    {% endif %}
+  </section>
+  <section class="card" aria-label="Reservation details">
+    <div class="row row--top">
+      {% include "components/cover.html" with book=reservation.book size="md" %}
+      <div class="grow">
+        <h2 class="h3"><a href="{{ reservation.book.get_absolute_url }}">{{ reservation.book.title }}</a></h2>
+        <p class="small muted">{{ reservation.book.author_names }}</p>
+        <dl class="kv mt-3">
+          <dt>Status</dt><dd>{% badge reservation.status reservation.get_status_display %}</dd>
+          <dt>Reserved on</dt><dd>{{ reservation.created_at|nice_date }}</dd>
+          {% if reservation.status == "waiting" %}
+            <dt>Queue position</dt><dd><strong>{{ position }}</strong></dd>
+            <dt>Estimated</dt><dd>{{ estimate.text }}</dd>
+          {% elif reservation.status == "ready" %}
+            <dt>Collect by</dt><dd><strong>{{ reservation.collect_by|nice_date }}</strong></dd>
+            <dt>Where</dt><dd>The hold shelf at the front desk</dd>
+          {% endif %}
+        </dl>
+      </div>
+    </div>
+    <div class="form-actions">
+      <a class="btn btn--primary" href="{% url 'portal:reservations' %}">All reservations</a>
+      {% if reservation.is_open %}
+      <form method="post" action="{% url 'portal:cancel_reservation' reservation.pk %}" data-confirm="Cancel this reservation?">{% csrf_token %}<button class="btn btn--ghost" type="submit">Cancel reservation</button></form>
+      {% endif %}
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,6 @@
+{% extends "emails/base.html" %}
+{% block content %}<p style="margin:0 0 12px;font-size:20px;font-family:Georgia,serif;">📚 Your library book is due soon.</p>
+<p style="font-size:18px;font-weight:600;margin:16px 0 4px;">{{ book.title }}</p>
+<p style="margin:0 0 16px;">Due date: <strong>{{ loan.due_date|date:"j F Y" }}</strong> ({{ when }})</p>
+<p>Please return it on time to avoid late fees.{% if library.max_renewals %} If nobody else is waiting for it, you can renew it online.{% endif %}</p>{% endblock %}
+{% block button_label %}Renew or view my books{% endblock %}

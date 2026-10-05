@@ -1,0 +1,3 @@
+{% extends "errors/layout.html" %}
+{% block title %}Something went wrong{% endblock %}
+{% block message %}{% include "components/empty.html" with icon="alert" title="We couldn't complete that action." text="Please go back and try again." %}{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "public/layout.html" %}
+{% block title %}My library — {{ library.library_name }}{% endblock %}
+{% block content %}
+<div class="container">
+  <header class="page-head">
+    <h1>{% greeting user.first_name %}</h1>
+    <p>{% if standing.overdue_loans %}You have {{ standing.overdue_loans|length|pluralize_n:"overdue book" }} — please return {{ standing.overdue_loans|length|pluralize:"it,them" }} soon.{% elif standing.ready_reservations %}A reserved book is waiting for you at the desk.{% elif standing.active_loans %}Happy reading.{% else %}Ready for your next book?{% endif %}</p>
+  </header>
+
+  {% if user.email and not user.email_verified %}
+  <div class="alert alert--warning mb-4">{% icon "mail" %}
+    <div class="grow"><p>Please confirm your email address so we can send reminders and reservation alerts.</p></div>
+    <form method="post" action="{% url 'accounts:resend_verification' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><button class="btn btn--sm" type="submit">Resend link</button></form>
+  </div>
+  {% endif %}
+
+  {% if standing.outstanding_fees %}
+  <div class="fee-banner mb-4">
+    {% icon "coins" "icon--lg" %}
+    <div class="grow">
+      <div class="small ink-2">Outstanding library fee</div>
+      <div class="fee-banner__amount num">{{ standing.outstanding_fees|money }}</div>
+    </div>
+    <a class="btn" href="{% url 'portal:fees' %}">View details</a>
+  </div>
+  {% endif %}
+
+  <section aria-label="Library status" class="status-strip">
+    <a class="stat" href="{% url 'portal:my_books' %}"><div class="stat__label">{% icon "book" %} Borrowed</div><div class="stat__value">{{ standing.active_loans|length }}</div><div class="stat__hint">{% if standing.overdue_loans %}{{ standing.overdue_loans|length }} overdue{% else %}All on time{% endif %}</div></a>
+    <a class="stat" href="{% url 'portal:reservations' %}"><div class="stat__label">{% icon "bookmark" %} Reservations</div><div class="stat__value">{{ reservations|length }}</div><div class="stat__hint">{% if standing.ready_reservations %}{{ standing.ready_reservations|length }} waiting for you{% else %}{{ standing.waiting_reservations }} in queue{% endif %}</div></a>
+    <a class="stat{% if standing.outstanding_fees %} stat--warning{% endif %}" href="{% url 'portal:fees' %}"><div class="stat__label">{% icon "coins" %} Fees</div><div class="stat__value stat__value--sm num">{{ standing.outstanding_fees|money }}</div><div class="stat__hint">{% if standing.estimated_fees %}+ {{ standing.estimated_fees|money }} estimated{% else %}outstanding{% endif %}</div></a>
+    <a class="stat" href="{% url 'portal:card' %}"><div class="stat__label">{% icon "card" %} Member ID</div><div class="stat__value stat__value--id mono">{{ member.member_id }}</div><div class="stat__hint">Show your card at the desk</div></a>
+  </section>
+
+  <div class="grid-2 mt-5">
+    <section class="card" aria-labelledby="current-h">
+      <div class="card-head"><h2 id="current-h" class="h3">Currently borrowed</h2><a class="small" href="{% url 'portal:my_books' %}">History</a></div>
+      {% for row in loans %}
+        {% include "portal/_loan_item.html" %}
+      {% empty %}
+        {% url 'public:catalogue' as catalogue_url %}
+        {% include "components/empty.html" with title="Your shelf is empty." text="There is always another story waiting." action_url=catalogue_url action_label="Explore books" compact=True %}
+      {% endfor %}
+    </section>
+
+    <section class="card" aria-labelledby="res-h">
+      <div class="card-head"><h2 id="res-h" class="h3">Reservations</h2><a class="small" href="{% url 'portal:reservations' %}">Manage</a></div>
+      {% for row in reservations %}
+        <div class="loan-item">
+          {% include "components/cover.html" with book=row.reservation.book size="sm" %}
+          <div class="loan-item__body">
+            <a class="loan-item__title" href="{% url 'portal:reservation' row.reservation.pk %}">{{ row.reservation.book.title }}</a>
+            <div class="loan-item__meta">{% if row.reservation.status == "ready" %}Collect by {{ row.reservation.collect_by|nice_date:False }}{% else %}Number {{ row.position }} in the queue · {{ row.estimate.text }}{% endif %}</div>
+            {% badge row.reservation.status row.reservation.get_status_display %}
+          </div>
+        </div>
+      {% empty %}
+        {% url 'public:catalogue' as catalogue_url %}
+        {% include "components/empty.html" with icon="bookmark" title="Nothing reserved yet." text="Find something interesting?" action_url=catalogue_url action_label="Browse the catalogue" compact=True %}
+      {% endfor %}
+    </section>
+  </div>
+
+  <section class="section" aria-labelledby="shelf-h">
+    <div class="section-head"><h2 id="shelf-h">Your library shelf</h2></div>
+    <div class="shelf">
+      <span class="shelf__label small muted">Reading · Reserved · Read before</span>
+      <div class="shelf__books">
+        {% for row in loans %}{% include "components/book_card.html" with book=row.loan.copy.book %}{% endfor %}
+        {% for row in reservations %}{% include "components/book_card.html" with book=row.reservation.book %}{% endfor %}
+        {% for book in previous_books %}{% include "components/book_card.html" %}{% endfor %}
+        {% if not loans and not reservations and not previous_books %}<p class="muted">Books you borrow and reserve will line up here.</p>{% endif %}
+      </div>
+      <div class="shelf__board" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  {% if previous_books %}
+  <section class="section" aria-labelledby="continue-h">
+    <div class="section-head"><h2 id="continue-h">Continue your reading</h2><span class="small muted">Books you've borrowed before</span></div>
+    <div class="book-row">{% for book in previous_books %}{% include "components/book_card.html" %}{% endfor %}</div>
+  </section>
+  {% endif %}
+
+  {% if recommended %}
+  <section class="section" aria-labelledby="quiet-h">
+    <div class="section-head"><h2 id="quiet-h">Quiet recommendations</h2><span class="small muted">Chosen from your borrowing history</span></div>
+    <div class="book-row">{% for book in recommended %}{% include "components/book_card.html" %}{% endfor %}</div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,10 @@
+# /etc/systemd/system/library-tasks.service — run by library-tasks.timer
+[Unit]
+Description=Library scheduled tasks (reminders, reservation expiry, email retries)
+
+[Service]
+Type=oneshot
+User=library
+WorkingDirectory=/opt/library
+EnvironmentFile=/opt/library/.env
+ExecStart=/opt/library/.venv/bin/python manage.py run_scheduled_tasks

@@ -1,0 +1,96 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}{% if is_new %}New book{% else %}Edit {{ book.title }}{% endif %}{% endblock %}
+{% block content %}
+<div class="staff-head">
+  <div>
+    <nav class="breadcrumb"><a href="{% url 'staff:books' %}">Books</a>{% if book %} / <a href="{% url 'staff:book' book.pk %}">{{ book.title }}</a>{% endif %}</nav>
+    <h1>{% if is_new %}New book{% else %}Edit book information{% endif %}</h1>
+    <p>{% if is_new %}Book details and the first physical copy.{% else %}Changes here apply to every copy. Edit a copy's barcode, shelf or condition from the copy itself.{% endif %}</p>
+  </div>
+</div>
+{% if lookup %}<div class="alert alert--success mb-4">{% icon "sparkles" %}<p>We filled in details from Open Library for ISBN {{ lookup.isbn }} — please check them.</p></div>
+{% elif is_new and form.isbn.value and not form.is_bound %}<div class="alert mb-4">{% icon "info" %}<p>No online details found for this ISBN. Please type them in.</p></div>{% endif %}
+
+<form method="post" enctype="multipart/form-data" novalidate>{% csrf_token %}
+  {% include "components/form_errors.html" %}
+  {{ form.cover_url }}
+  <div class="settings-layout">
+    <div class="stack">
+      <section class="card">
+        <fieldset>
+          <legend>Book information</legend>
+          {% include "components/field.html" with field=form.title %}
+          {% include "components/field.html" with field=form.subtitle %}
+          {% include "components/field.html" with field=form.author_names %}
+          <div class="form-row">
+            <div class="field{% if form.isbn.errors %} field--error{% endif %}">
+              <label for="{{ form.isbn.id_for_label }}">ISBN</label>
+              <div class="scan-input">{{ form.isbn }}{% if "books.manage" in caps %}<button class="btn" type="button" data-isbn-fill="{% url 'staff:isbn_lookup' %}">Fill from ISBN</button>{% endif %}</div>
+              <p class="help" data-isbn-status role="status" aria-live="polite"></p>
+              {% if form.isbn.errors %}<ul class="errorlist">{% for e in form.isbn.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+            </div>
+            {% include "components/field.html" with field=form.publication_year %}
+          </div>
+          <div class="form-row">
+            {% include "components/field.html" with field=form.publisher_name %}
+            {% include "components/field.html" with field=form.language %}
+          </div>
+          <div class="form-row">
+            {% include "components/field.html" with field=form.category %}
+            {% include "components/field.html" with field=form.new_category %}
+          </div>
+          {% include "components/field.html" with field=form.description %}
+          {% include "components/field.html" with field=form.keywords %}
+        </fieldset>
+      </section>
+
+      {% if is_new %}
+      <section class="card">
+        <fieldset>
+          <legend>First copy</legend>
+          <div class="form-row">
+            {% include "components/field.html" with field=form.barcode %}
+            {% include "components/field.html" with field=form.shelf_location %}
+          </div>
+          <div class="form-row">
+            {% include "components/field.html" with field=form.condition %}
+            {% include "components/field.html" with field=form.extra_copies %}
+          </div>
+        </fieldset>
+      </section>
+      {% endif %}
+    </div>
+
+    <div class="stack">
+      <section class="card">
+        <fieldset>
+          <legend>Cover</legend>
+          {% if book and book.cover %}<div class="mb-4">{% include "components/cover.html" with book=book size="md" %}</div>{% endif %}
+          {% if form.cover_url.value and not book.cover %}<p class="small muted">A cover from Open Library will be saved automatically.</p>{% endif %}
+          {% include "components/field.html" with field=form.cover_upload %}
+          {% if form.remove_cover %}{% include "components/field.html" with field=form.remove_cover %}{% endif %}
+        </fieldset>
+      </section>
+      <section class="card">
+        <fieldset>
+          <legend>Lending</legend>
+          {% include "components/field.html" with field=form.loan_period_days %}
+          {% include "components/field.html" with field=form.replacement_cost %}
+          <div class="mt-4">{% include "components/field.html" with field=form.reference_only %}</div>
+        </fieldset>
+      </section>
+      <section class="card">
+        <fieldset>
+          <legend>Book DNA</legend>
+          {% include "components/field.html" with field=form.dna %}
+        </fieldset>
+      </section>
+    </div>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn--primary btn--lg" type="submit">{% if is_new %}{% icon "plus" %} Add book{% else %}Save changes{% endif %}</button>
+    <a class="btn btn--lg" href="{% if book %}{% url 'staff:book' book.pk %}{% else %}{% url 'staff:books' %}{% endif %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}
+{% block staff_scripts %}<script src="{% static 'js/book-form.js' %}" defer></script>{% endblock %}

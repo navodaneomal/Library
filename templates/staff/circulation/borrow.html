@@ -1,0 +1,12 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}Circulation{% endblock %}
+{% block body_attrs %} data-scan-station{% endblock %}
+{% block content %}
+<div class="staff-head">
+  <div><h1>Circulation</h1><p>Scan the member's card, scan the book, confirm. Done.</p></div>
+  {% include "staff/circulation/_tabs.html" with active="borrow" %}
+</div>
+<div id="desk">{% include "staff/circulation/_borrow_desk.html" %}</div>
+{% include "components/camera_dialog.html" %}
+{% endblock %}
+{% block staff_scripts %}<script src="{% static 'js/scanner.js' %}" defer></script><script src="{% static 'js/camera.js' %}" defer></script>{% endblock %}

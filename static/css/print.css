@@ -1,0 +1,46 @@
+@media print {
+  :root {
+    --bg: #fff;
+    --surface: #fff;
+  }
+  body {
+    background: #fff;
+    color: #000;
+  }
+  .site-header,
+  .site-footer,
+  .tabbar,
+  .fab,
+  .sidebar,
+  .topbar,
+  .toasts,
+  .no-print,
+  .staff-head .row {
+    display: none !important;
+  }
+  .staff {
+    display: block;
+  }
+  .staff-content {
+    padding: 0;
+    max-width: none;
+  }
+  .card {
+    box-shadow: none;
+    border: 0;
+    padding: 0;
+  }
+  .library-card {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    box-shadow: none;
+    width: 85.6mm;
+  }
+  .labels-sheet {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4mm;
+  }
+  .copy-label {
+    border: 1px solid #ccc;
+  }
+}

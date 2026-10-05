@@ -1,0 +1,30 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}Backup &amp; export{% endblock %}
+{% block content %}
+<div class="staff-head"><div><h1>Backup &amp; export</h1><p>Database: {{ db_engine }}. Keep a copy somewhere safe — off this server.</p></div></div>
+<div class="grid-2">
+  <section class="card">
+    <h2 class="h3">{% icon "database" %} Full backup</h2>
+    <p class="muted">A single compressed file with all library data — books, copies, members, loans, fees and settings. It can be restored on any server.</p>
+    <dl class="kv mb-4">{% for label, n in counts.items %}<dt>{{ label }}</dt><dd class="num">{{ n|intcomma }}</dd>{% endfor %}</dl>
+    <form method="post" action="{% url 'staff:backup_download' %}">{% csrf_token %}<button class="btn btn--primary" type="submit">{% icon "download" %} Download backup</button></form>
+    <p class="small muted mt-4">Contains personal data and password hashes. Store it securely. Uploaded cover images are backed up separately with <span class="mono">manage.py backup --with-media</span>.</p>
+  </section>
+  <section class="card">
+    <h2 class="h3">{% icon "list" %} Export to spreadsheet (CSV)</h2>
+    <p class="muted">Open in Excel, Google Sheets or LibreOffice.</p>
+    <div class="stack-sm">
+      <a class="btn btn--block" href="{% url 'staff:export_csv' 'books' %}">{% icon "books" %} Books &amp; copies</a>
+      <a class="btn btn--block" href="{% url 'staff:export_csv' 'members' %}">{% icon "users" %} Members</a>
+      <a class="btn btn--block" href="{% url 'staff:export_csv' 'loans' %}">{% icon "refresh" %} Loans</a>
+      <a class="btn btn--block" href="{% url 'staff:export_csv' 'fees' %}">{% icon "coins" %} Fees</a>
+    </div>
+  </section>
+</div>
+<section class="card card--soft mt-5">
+  <h2 class="h3">Restoring a backup</h2>
+  <p class="small">Restoring replaces all current data, so it's done on the server rather than from this page:</p>
+  <pre class="mono small">python manage.py restore library-YYYYMMDD-HHMMSS.json.gz --replace</pre>
+  <p class="small mb-0">Automatic nightly backups: schedule <span class="mono">python manage.py backup</span> (see the README).</p>
+</section>
+{% endblock %}

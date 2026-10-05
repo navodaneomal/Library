@@ -1,0 +1,19 @@
+# Caddy obtains and renews HTTPS certificates automatically for $DOMAIN.
+{$DOMAIN:localhost} {
+	encode zstd gzip
+
+	# Uploaded cover images are served directly by Caddy.
+	handle_path /media/* {
+		root * /srv/media
+		header Cache-Control "public, max-age=604800"
+		header X-Content-Type-Options nosniff
+		file_server
+	}
+
+	reverse_proxy web:8000
+
+	header {
+		-Server
+		Strict-Transport-Security "max-age=31536000"
+	}
+}

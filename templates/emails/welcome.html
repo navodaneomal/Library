@@ -1,0 +1,6 @@
+{% extends "emails/base.html" %}
+{% block content %}<p style="margin:0 0 12px;font-size:22px;font-family:Georgia,serif;">Welcome, {{ member.user.first_name }}.</p>
+<p>Your membership is ready. Here is your member ID:</p>
+<p style="font-family:Menlo,Consolas,monospace;font-size:20px;letter-spacing:2px;background:#f6f3ec;padding:12px 16px;border-radius:8px;display:inline-block;">{{ member.member_id }}</p>
+<p>Your digital library card is in your account — show it at the desk and we will scan it to lend you books.</p>{% endblock %}
+{% block button %}<tr><td style="padding:8px 28px 28px;"><a href="{{ card_url }}" style="display:inline-block;background:#1f4d3f;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:10px;">View my library card</a></td></tr>{% endblock %}

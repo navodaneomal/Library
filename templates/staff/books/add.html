@@ -1,0 +1,35 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}Add book{% endblock %}
+{% block body_attrs %} data-scan-station{% endblock %}
+{% block content %}
+<div class="staff-head">
+  <div><nav class="breadcrumb"><a href="{% url 'staff:books' %}">Books</a></nav><h1>Add a book</h1><p>Scan the copy's barcode label or the ISBN on the back cover.</p></div>
+  <a class="btn" href="{% url 'staff:book_new' %}">Enter details manually</a>
+</div>
+<div class="desk">
+  <section class="scan-box">
+    <div class="scan-step"><span class="scan-step__n">{% icon "scan" %}</span> Scan barcode</div>
+    <form method="post" action="{% url 'staff:book_add' %}" data-swap="#add-result" autocomplete="off">{% csrf_token %}
+      <label class="visually-hidden" for="add-code">Barcode or ISBN</label>
+      <div class="scan-input">
+        <input id="add-code" name="code" type="text" placeholder="Barcode or ISBN" data-scan-primary data-autofocus autofocus>
+        <button class="btn btn--icon" type="button" data-camera-for="add-code" hidden aria-label="Scan with camera">{% icon "camera" %}</button>
+        <button class="btn btn--primary" type="submit">Continue</button>
+      </div>
+      <p class="scan-hint">{% icon "info" %} We check for duplicates first — nothing is ever registered twice.</p>
+    </form>
+    <div id="add-result" class="mt-4" aria-live="polite">{% include "staff/books/_add_scan_result.html" %}</div>
+  </section>
+  <section class="card card--soft">
+    <h2 class="h3">How it works</h2>
+    <ol class="mt-3">
+      <li><strong>Scan</strong> — a library barcode label or the book's ISBN.</li>
+      <li><strong>Check</strong> — if the barcode exists, you'll see that copy instead.</li>
+      <li><strong>Enter details</strong> — scanning an ISBN fills most of the form for you.</li>
+      <li><strong>Add</strong> — then print labels for any generated barcodes.</li>
+    </ol>
+  </section>
+</div>
+{% include "components/camera_dialog.html" %}
+{% endblock %}
+{% block staff_scripts %}<script src="{% static 'js/scanner.js' %}" defer></script><script src="{% static 'js/camera.js' %}" defer></script>{% endblock %}

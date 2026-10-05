@@ -1,0 +1,25 @@
+{% extends "public/layout.html" %}
+{% block title %}Notifications — {{ library.library_name }}{% endblock %}
+{% block content %}
+<div class="container container--narrow">
+  <header class="page-head row row--between">
+    <div><h1>Notifications</h1><p>Reminders, reservations and news from the library.</p></div>
+    {% if unread_notifications %}<form method="post" action="{% url 'portal:notifications_read' %}">{% csrf_token %}<button class="btn" type="submit">{% icon "check" %} Mark all read</button></form>{% endif %}
+  </header>
+  <section class="card card--flush">
+    {% for n in page.object_list %}
+      <a class="menu__item notification{% if not n.read_at %} notification--unread{% endif %}" href="{% url 'portal:open_notification' n.pk %}">
+        <span class="notification__dot" aria-hidden="true"></span>
+        <span class="grow">
+          <strong>{{ n.title }}</strong>{% if not n.read_at %}<span class="visually-hidden"> (unread)</span>{% endif %}
+          {% if n.body %}<span class="small muted notification__body">{{ n.body }}</span>{% endif %}
+          <span class="small muted notification__body">{{ n.created_at|ago }}</span>
+        </span>
+      </a>
+    {% empty %}
+      {% include "components/empty.html" with icon="bell" title="You're all caught up" text="We'll let you know when a book is due or a reservation is ready." %}
+    {% endfor %}
+  </section>
+  {% include "components/pagination.html" %}
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}Settings{% endblock %}
+{% block content %}
+<div class="staff-head"><div><h1>Settings</h1><p>Everything about how your library lends, charges and reminds. Changes apply immediately and are recorded in the audit log.</p></div></div>
+<div class="settings-layout">
+  <form method="post" novalidate class="card">{% csrf_token %}
+    {% include "components/form_errors.html" %}
+    {% for title, fields in form.sections %}
+    <fieldset class="settings-section">
+      <legend>{{ title }}</legend>
+      <div class="form-row">
+        {% for field in fields %}{% if field.widget_type != "checkbox" and field.widget_type != "textarea" %}{% include "components/field.html" %}{% endif %}{% endfor %}
+      </div>
+      {% for field in fields %}{% if field.widget_type == "textarea" %}<div class="mt-4">{% include "components/field.html" %}</div>{% endif %}{% endfor %}
+      <div class="stack-sm mt-4">
+        {% for field in fields %}{% if field.widget_type == "checkbox" %}{% include "components/field.html" %}{% endif %}{% endfor %}
+      </div>
+    </fieldset>
+    {% endfor %}
+    <div class="form-actions"><button class="btn btn--primary btn--lg" type="submit">Save settings</button></div>
+  </form>
+  <aside class="stack">
+    <section class="card">
+      <h2 class="h3 mb-4">{% icon "mail" %} Email</h2>
+      <dl class="kv">
+        <dt>Delivery</dt><dd>{{ email_status.backend }}</dd>
+        {% if email_status.host %}<dt>Server</dt><dd class="mono small">{{ email_status.host }}</dd>{% endif %}
+        <dt>From</dt><dd class="small">{{ email_status.from }}</dd>
+        <dt>Failed</dt><dd>{{ email_status.recent_failures }}</dd>
+      </dl>
+      <p class="small muted mt-3">SMTP details are set in the server's environment (EMAIL_HOST, EMAIL_HOST_USER …) so passwords never live in the database.</p>
+      <form method="post" action="{% url 'staff:email_test' %}">{% csrf_token %}<button class="btn btn--sm" type="submit">Send a test email to me</button></form>
+    </section>
+    <section class="card card--soft">
+      <h2 class="h3 mb-2">How fees are calculated</h2>
+      <p class="small">Overdue days − grace period = chargeable days.<br>Chargeable days × fee per day = fee (never above the maximum).</p>
+      <p class="small mb-0">Example: a book returned 4 days late costs <strong>{{ example_fee.amount|money }}</strong> with the current settings.</p>
+    </section>
+  </aside>
+</div>
+{% endblock %}

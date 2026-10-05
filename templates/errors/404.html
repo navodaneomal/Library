@@ -1,0 +1,3 @@
+{% extends "errors/layout.html" %}
+{% block title %}Page not found{% endblock %}
+{% block message %}{% url 'public:catalogue' as catalogue_url %}{% include "components/empty.html" with icon="search" title="We couldn't find that page" text="It may have moved, or the link may be mistyped. The book you're looking for might still be on the shelf." action_url=catalogue_url action_label="Search the catalogue" %}{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "public/layout.html" %}
+{% block title %}{% if filters.q %}“{{ filters.q }}” — {% endif %}Books — {{ library.library_name }}{% endblock %}
+{% block header_search %}{% endblock %}
+{% block fab %}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="catalogue">
+    <aside>
+      <details class="filters" {% if filters.active_count %}open{% endif %} id="filters">
+        <summary>{% icon "filter" %} <span class="grow">&nbsp;Filters{% if filters.active_count %} ({{ filters.active_count }}){% endif %}</span></summary>
+        <form method="get" action="{% url 'public:catalogue' %}" class="stack" aria-label="Filter books">
+          {% if filters.q %}<input type="hidden" name="q" value="{{ filters.q }}">{% endif %}
+          <input type="hidden" name="sort" value="{{ filters.sort }}">
+          <label class="check"><input type="checkbox" name="available" value="1" {% if filters.available %}checked{% endif %}> <span>Available now</span></label>
+          <div class="field">
+            <label for="f-category">Category</label>
+            <select id="f-category" name="category">
+              <option value="">All categories</option>
+              {% for c in categories %}<option value="{{ c.slug }}" {% if c.slug == filters.category %}selected{% endif %}>{{ c.name }} ({{ c.n }})</option>{% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="f-author">Author</label>
+            <select id="f-author" name="author">
+              <option value="">All authors</option>
+              {% for a in authors %}<option value="{{ a.pk }}" {% if a.pk == filters.author %}selected{% endif %}>{{ a.name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="f-language">Language</label>
+            <select id="f-language" name="language">
+              <option value="">Any language</option>
+              {% for lang in languages %}<option value="{{ lang }}" {% if lang|lower == filters.language|lower %}selected{% endif %}>{{ lang }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="field"><label for="f-from">Published from</label><input id="f-from" type="number" name="year_from" inputmode="numeric" min="1000" max="2100" value="{{ filters.year_from|default_if_none:'' }}" placeholder="e.g. 1990"></div>
+            <div class="field"><label for="f-to">to</label><input id="f-to" type="number" name="year_to" inputmode="numeric" min="1000" max="2100" value="{{ filters.year_to|default_if_none:'' }}" placeholder="2026"></div>
+          </div>
+          <div class="row">
+            <button class="btn btn--primary" type="submit">Apply</button>
+            {% if filters.active_count %}<a class="btn btn--ghost" href="{% url 'public:catalogue' %}{% if filters.q %}?q={{ filters.q|urlencode }}{% endif %}">Clear</a>{% endif %}
+          </div>
+        </form>
+      </details>
+    </aside>
+
+    <section aria-labelledby="results-h">
+      <form class="search" action="{% url 'public:catalogue' %}" method="get" role="search">
+        <div class="search__field">
+          {% icon "search" %}
+          <label class="visually-hidden" for="cat-q">Search the catalogue</label>
+          <input id="cat-q" type="search" name="q" value="{{ filters.q }}" placeholder="Title, author, ISBN, category, barcode…" data-suggest="{% url 'public:suggest' %}" data-global-search>
+          {% if filters.available %}<input type="hidden" name="available" value="1">{% endif %}
+          {% if filters.category %}<input type="hidden" name="category" value="{{ filters.category }}">{% endif %}
+          <button class="btn btn--primary" type="submit">Search</button>
+        </div>
+      </form>
+
+      <div class="results-head mt-5">
+        <div>
+          <h1 id="results-h">{% if filters.q %}Results for “{{ filters.q }}”{% elif filters.available %}Available now{% elif filters.sort == "newest" %}New arrivals{% elif filters.sort == "popular" %}Popular books{% else %}All books{% endif %}</h1>
+          <p class="muted small" role="status">{{ page.paginator.count }} book{{ page.paginator.count|pluralize }}</p>
+        </div>
+        <form method="get" action="{% url 'public:catalogue' %}" class="row">
+          {% for key, value in request.GET.items %}{% if key != "sort" and key != "page" %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}{% endfor %}
+          <label for="sort" class="small muted">Sort</label>
+          <select id="sort" name="sort" data-autosubmit>
+            {% for key, label in sorts.items %}<option value="{{ key }}" {% if key == filters.sort %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select>
+          <noscript><button class="btn btn--sm" type="submit">Sort</button></noscript>
+        </form>
+      </div>
+
+      {% if outcome.corrected %}
+      <div class="alert" role="status">{% icon "info" %}
+        <p>Showing results for <strong>{{ outcome.corrected }}</strong>. No exact matches for “{{ filters.q }}”.</p>
+      </div>
+      {% endif %}
+
+      {% if page.object_list %}
+        <div class="book-grid mt-5">
+          {% for book in page.object_list %}{% include "components/book_card.html" with show_desc=True %}{% endfor %}
+        </div>
+        {% include "components/pagination.html" %}
+      {% else %}
+        {% url 'public:catalogue' as catalogue_url %}
+        {% include "components/empty.html" with icon="search" title="No books found" text="Try fewer words, check the spelling, or clear the filters. There is always another story waiting." action_url=catalogue_url action_label="Browse all books" %}
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

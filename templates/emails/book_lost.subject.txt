@@ -1,0 +1,1 @@
+{% autoescape off %}{{ book.title }} has been recorded as lost{% endautoescape %}

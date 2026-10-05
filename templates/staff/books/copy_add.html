@@ -1,0 +1,28 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}Add copy — {{ book.title }}{% endblock %}
+{% block body_attrs %} data-scan-station{% endblock %}
+{% block content %}
+<div class="staff-head">
+  <div><nav class="breadcrumb"><a href="{% url 'staff:books' %}">Books</a> / <a href="{% url 'staff:book' book.pk %}">{{ book.title }}</a></nav><h1>Add a copy</h1><p>{{ book.title }} — currently {{ book.copies.count }} cop{{ book.copies.count|pluralize:"y,ies" }}.</p></div>
+</div>
+<form method="post" novalidate class="card container--narrow">{% csrf_token %}
+  {% include "components/form_errors.html" %}
+  <div class="field{% if form.barcode.errors %} field--error{% endif %}">
+    <label for="{{ form.barcode.id_for_label }}">Barcode</label>
+    <div class="scan-input">
+      <input type="text" name="barcode" id="{{ form.barcode.id_for_label }}" value="{{ form.barcode.value|default:'' }}" autocomplete="off" data-scan-primary autofocus placeholder="Scan the label (or leave empty to generate)">
+      <button class="btn btn--icon" type="button" data-camera-for="{{ form.barcode.id_for_label }}" hidden aria-label="Scan with camera">{% icon "camera" %}</button>
+    </div>
+    <p class="help">{{ form.barcode.help_text }}</p>
+    {% if form.barcode.errors %}<ul class="errorlist">{% for e in form.barcode.errors %}<li>{% icon "alert" %} {{ e }}</li>{% endfor %}</ul>{% endif %}
+  </div>
+  <div class="form-row mt-4">
+    {% include "components/field.html" with field=form.shelf_location %}
+    {% include "components/field.html" with field=form.condition %}
+  </div>
+  {% include "components/field.html" with field=form.extra_copies %}
+  <div class="form-actions"><button class="btn btn--primary btn--lg" type="submit">{% icon "plus" %} Add copy</button><a class="btn btn--lg" href="{% url 'staff:book' book.pk %}">Cancel</a></div>
+</form>
+{% include "components/camera_dialog.html" %}
+{% endblock %}
+{% block staff_scripts %}<script src="{% static 'js/camera.js' %}" defer></script>{% endblock %}

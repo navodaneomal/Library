@@ -1,0 +1,50 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}{{ copy.book.title }} — {{ copy.label }}{% endblock %}
+{% block content %}
+<div class="staff-head">
+  <div><nav class="breadcrumb"><a href="{% url 'staff:books' %}">Books</a> / <a href="{% url 'staff:book' copy.book_id %}">{{ copy.book.title }}</a></nav>
+    <h1>{{ copy.label }} <span class="mono muted h3">{{ copy.copy_code }}</span></h1>
+    <div class="row mt-3">{% badge copy.status copy.get_status_display %}<span class="pill">Condition: {{ copy.get_condition_display }}</span></div>
+  </div>
+  <div class="row">
+    <a class="btn" href="{% url 'staff:labels' %}?copies={{ copy.pk }}">{% icon "printer" %} Print label</a>
+    {% if "books.manage" in caps %}<a class="btn btn--primary" href="{% url 'staff:copy_edit' copy.pk %}">{% icon "edit" %} Edit copy</a>{% endif %}
+  </div>
+</div>
+<div class="grid-2">
+  <section class="card">
+    <dl class="kv">
+      <dt>Book</dt><dd><a href="{% url 'staff:book' copy.book_id %}">{{ copy.book.title }}</a></dd>
+      <dt>Barcode</dt><dd class="mono">{{ copy.barcode }}</dd>
+      <dt>Shelf</dt><dd>{% if copy.shelf_location %}{% include "components/shelf_path.html" with steps=copy.shelf_location|shelf_steps %}{% else %}—{% endif %}</dd>
+      <dt>Acquired</dt><dd>{{ copy.acquired_on|short_date|default:"—" }}</dd>
+      <dt>Notes</dt><dd>{{ copy.notes|default:"—" }}</dd>
+    </dl>
+    <div class="barcode mt-4">{% barcode copy.barcode 50 2 %}<div class="barcode__text">{{ copy.barcode }}</div></div>
+  </section>
+  <section class="card">
+    <h2 class="h3 mb-4">Right now</h2>
+    {% if loan %}
+      <p>On loan to <a href="{% url 'staff:member' loan.member_id %}"><strong>{{ loan.member.user.full_name }}</strong></a> ({{ loan.member.member_id }}).</p>
+      <p>Borrowed {{ loan.borrowed_at|nice_date }} · {% include "components/due.html" with date=loan.due_date %}</p>
+    {% elif hold %}
+      <p class="hold-tag">{% icon "bookmark" %} On hold for {{ hold.member.user.full_name }} — collect by {{ hold.collect_by|nice_date }}</p>
+    {% else %}
+      <p class="muted">Not on loan.</p>
+    {% endif %}
+  </section>
+</div>
+<section class="card mt-5" aria-labelledby="hist-h">
+  <h2 id="hist-h" class="h3 mb-4">History</h2>
+  {% if history %}
+  <ul class="timeline">
+    {% for l in history %}
+    <li><strong>Borrowed:</strong> <a href="{% url 'staff:member' l.member_id %}">{{ l.member.user.full_name }}</a> — {{ l.borrowed_at|short_date }}
+      {% if l.status == "returned" %}<br><strong>Returned:</strong> {{ l.returned_at|short_date }}{% elif l.status == "lost" %}<br>{% badge "lost" "Marked lost" %} {{ l.returned_at|short_date }}{% else %}<br>{% include "components/due.html" with date=l.due_date %}{% endif %}
+      {% for fee in l.fees.all %}<br><strong>Fee:</strong> {{ fee.amount|money }} {% badge fee.status fee.get_status_display %}{% endfor %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}{% include "components/empty.html" with icon="history" title="No history yet" text="This copy has never been borrowed." compact=True %}{% endif %}
+</section>
+{% endblock %}

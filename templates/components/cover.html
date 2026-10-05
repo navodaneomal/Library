@@ -1,0 +1,8 @@
+<div class="cover cover--{{ size|default:'md' }} cover--tone-{{ book|cover_tone }}">
+  <div class="cover__ph" aria-hidden="true">
+    <span class="cover__cat">{% if book.category_id %}{{ book.category.name }}{% else %}Library{% endif %}</span>
+    <span class="cover__title">{{ book.title }}</span>
+    {% if book.author_names %}<span class="cover__author">{{ book.author_names }}</span>{% endif %}
+  </div>
+  {% if book.cover %}<img class="cover__img" src="{{ book.cover.url }}" alt="{{ alt|default:'' }}" loading="{{ loading|default:'lazy' }}" decoding="async" width="300" height="450">{% endif %}
+</div>

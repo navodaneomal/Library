@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+data/
+media/
+staticfiles/
+backups/
+*.sqlite3
+.coverage
+htmlcov/
+node_modules/
+.DS_Store

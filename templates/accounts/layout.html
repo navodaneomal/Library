@@ -1,0 +1,11 @@
+{% extends "public/layout.html" %}
+{% block fab %}{% endblock %}
+{% block header_search %}{% endblock %}
+{% block content %}
+<div class="container auth">
+  <div class="auth__card {% block card_class %}{% endblock %}">
+    <div class="card">{% block card %}{% endblock %}</div>
+    {% block after %}{% endblock %}
+  </div>
+</div>
+{% endblock %}

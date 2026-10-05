@@ -1,0 +1,6 @@
+<div class="empty{% if compact %} empty--compact{% endif %}">
+  <div class="empty__art">{% icon icon|default:"books" "icon--lg" %}</div>
+  <h3>{{ title }}</h3>
+  {% if text %}<p>{{ text }}</p>{% endif %}
+  {% if action_url %}<a class="btn btn--soft" href="{{ action_url }}">{{ action_label }}</a>{% endif %}
+</div>

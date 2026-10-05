@@ -1,0 +1,47 @@
+<div class="desk">
+  <div class="stack">
+    <section class="scan-box">
+      <form method="post" action="{% url 'staff:inventory_session' session.pk %}" data-swap="#station" autocomplete="off">{% csrf_token %}
+        <div class="field">
+          <label for="inv-location">Shelf you're scanning (optional)</label>
+          <input id="inv-location" name="location" type="text" value="{{ location }}" placeholder="e.g. FIC-A-04 — flags books that belong elsewhere">
+        </div>
+        <div class="field mt-4">
+          <label for="inv-code">Barcode</label>
+          <div class="scan-input">
+            <input id="inv-code" name="code" type="text" placeholder="Scan each book" data-scan-primary data-autofocus data-clear-after autofocus>
+            <button class="btn btn--icon" type="button" data-camera-for="inv-code" hidden aria-label="Scan with camera">{% icon "camera" %}</button>
+            <button class="btn btn--primary" type="submit">Record</button>
+          </div>
+        </div>
+      </form>
+    </section>
+    <div aria-live="polite">
+    {% if last %}
+      <div class="result result--{% if last.result == 'ok' %}success{% elif last.result == 'unknown' %}error{% else %}warning{% endif %}" data-sound="{% if last.result == 'ok' %}success{% elif last.result == 'unknown' %}error{% else %}warning{% endif %}">
+        <div class="result__head">
+          <span class="result__icon" aria-hidden="true">{% if last.result == "ok" %}{% icon "check" %}{% elif last.result == "unknown" %}{% icon "x" %}{% else %}{% icon "alert" %}{% endif %}</span>
+          <div><div class="result__title">{{ last.get_result_display }}</div><div class="result__subtitle">{% if last.copy %}{{ last.copy.book.title }}{% else %}{{ last.barcode }}{% endif %}</div></div>
+        </div>
+        {% if last.note %}<p class="result__hint">{{ last.note }}</p>{% endif %}
+      </div>
+    {% endif %}
+    </div>
+  </div>
+  <div class="stack">
+    <section class="grid-4" aria-label="Progress">
+      <div class="stat stat--success"><div class="stat__label">Scanned</div><div class="stat__value">{{ counts.ok }}</div></div>
+      <div class="stat stat--warning"><div class="stat__label">Misplaced</div><div class="stat__value">{{ counts.unexpected_location }}</div></div>
+      <div class="stat"><div class="stat__label">Duplicates</div><div class="stat__value">{{ counts.duplicate }}</div></div>
+      <div class="stat stat--danger"><div class="stat__label">Unknown / attention</div><div class="stat__value">{{ counts.unknown|add:counts.status_mismatch }}</div></div>
+    </section>
+    <section class="card card--flush">
+      <div class="card-head card-head--pad"><h2 class="h3">Latest scans</h2><span class="small muted">{{ counts.scanned }} total</span></div>
+      {% if recent %}
+      <table class="table table--cards"><tbody>{% for scan in recent %}
+        <tr><td class="td-primary">{% if scan.copy %}{{ scan.copy.book.title }}{% else %}<span class="mono">{{ scan.barcode }}</span>{% endif %}<div class="small muted">{{ scan.note }}</div></td><td data-label="Result">{% badge scan.result scan.get_result_display %}</td></tr>
+      {% endfor %}</tbody></table>
+      {% else %}{% include "components/empty.html" with icon="scan" title="Start scanning" text="Each scan is recorded instantly." compact=True %}{% endif %}
+    </section>
+  </div>
+</div>

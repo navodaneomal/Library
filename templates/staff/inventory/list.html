@@ -1,0 +1,28 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}Inventory{% endblock %}
+{% block content %}
+<div class="staff-head"><div><h1>Inventory mode</h1><p>Walk the shelves scanning barcodes. We'll tell you what's missing, misplaced or scanned twice.</p></div></div>
+<div class="grid-2">
+  <section class="card" aria-labelledby="start-h">
+    <h2 id="start-h" class="h3 mb-4">Start an inventory</h2>
+    <form method="post" novalidate>{% csrf_token %}
+      {% include "components/form_errors.html" %}
+      {% include "components/field.html" with field=form.name %}
+      {% include "components/field.html" with field=form.scope_prefix %}
+      <div class="form-actions"><button class="btn btn--primary" type="submit">{% icon "scan" %} Start scanning</button></div>
+    </form>
+  </section>
+  <section class="card card--flush" aria-labelledby="past-h">
+    <div class="card-head card-head--pad"><h2 id="past-h" class="h3">Inventories</h2></div>
+    {% if sessions %}
+    <table class="table table--cards"><tbody>{% for s in sessions %}
+      <tr>
+        <td class="td-primary"><a class="table-title" href="{% if s.status == 'open' %}{% url 'staff:inventory_session' s.pk %}{% else %}{% url 'staff:inventory_report' s.pk %}{% endif %}">{{ s.name }}</a><div class="small muted">{{ s.started_at|short_date }}{% if s.scope_prefix %} · shelves {{ s.scope_prefix }}*{% endif %}</div></td>
+        <td data-label="Status">{% badge s.status s.get_status_display %}</td>
+        <td data-label="Result" class="small">{% if s.summary %}{{ s.summary.scanned }} scanned · {{ s.summary.missing }} missing{% endif %}</td>
+      </tr>
+    {% endfor %}</tbody></table>
+    {% else %}{% include "components/empty.html" with icon="box" title="No inventories yet" text="Start one for a single shelf to try it out." compact=True %}{% endif %}
+  </section>
+</div>
+{% endblock %}

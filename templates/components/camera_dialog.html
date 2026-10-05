@@ -1,0 +1,13 @@
+<dialog class="dialog" id="camera-dialog" aria-labelledby="camera-title" data-zxing="{% static 'vendor/zxing-0.21.3.min.js' %}">
+  <div class="dialog__body stack">
+    <div class="row row--between">
+      <h2 id="camera-title" class="h3">Scan with camera</h2>
+      <button type="button" class="btn btn--ghost btn--icon" data-camera-close aria-label="Close camera">{% icon "x" %}</button>
+    </div>
+    <div class="camera-view">
+      <video muted playsinline></video>
+      <div class="camera-view__guide" aria-hidden="true"></div>
+    </div>
+    <p class="muted small" data-camera-status role="status" aria-live="polite">Starting camera…</p>
+  </div>
+</dialog>

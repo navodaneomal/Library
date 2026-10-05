@@ -1,0 +1,9 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}Library card — {{ member.user.full_name }}{% endblock %}
+{% block content %}
+<div class="staff-head">
+  <div><nav class="breadcrumb"><a href="{% url 'staff:member' member.pk %}">{{ member.user.full_name }}</a></nav><h1>Library card</h1></div>
+  <button class="btn btn--primary" type="button" data-print>{% icon "printer" %} Print card</button>
+</div>
+{% include "components/library_card.html" with member=member %}
+{% endblock %}

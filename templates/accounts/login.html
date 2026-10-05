@@ -1,0 +1,20 @@
+{% extends "accounts/layout.html" %}
+{% block title %}Sign in — {{ library.library_name }}{% endblock %}
+{% block card %}
+<h1>Welcome back</h1>
+<p class="muted">Sign in to reserve books and see your loans.</p>
+<form method="post" novalidate class="mt-4">{% csrf_token %}
+  <input type="hidden" name="next" value="{{ next }}">
+  {% include "components/form_errors.html" %}
+  {% include "components/field.html" with field=form.email %}
+  {% include "components/field.html" with field=form.password %}
+  <div class="row row--between mt-4">
+    {% include "components/field.html" with field=form.remember %}
+    <a class="small" href="{% url 'accounts:password_reset' %}">Forgot password?</a>
+  </div>
+  <div class="form-actions"><button class="btn btn--primary btn--lg btn--block" type="submit">Sign in</button></div>
+</form>
+{% endblock %}
+{% block after %}
+{% if library.allow_self_registration %}<p class="auth__alt">New to {{ library.library_name }}? <a href="{% url 'accounts:register' %}">Become a member</a></p>{% endif %}
+{% endblock %}

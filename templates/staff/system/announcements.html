@@ -1,0 +1,21 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}Announcements{% endblock %}
+{% block content %}
+<div class="staff-head"><div><h1>Announcements</h1><p>Appears in every active member's notification centre — e.g. holiday closures or new opening hours.</p></div></div>
+<div class="grid-2">
+  <form method="post" novalidate class="card" data-confirm="Send this announcement to all active members?">{% csrf_token %}
+    {% include "components/form_errors.html" %}
+    {% include "components/field.html" with field=form.title %}
+    {% include "components/field.html" with field=form.body %}
+    <div class="form-actions"><button class="btn btn--primary" type="submit">{% icon "megaphone" %} Send announcement</button></div>
+  </form>
+  <section class="card card--flush">
+    <div class="card-head card-head--pad"><h2 class="h3">Sent</h2></div>
+    {% if items %}
+    <table class="table table--cards"><tbody>{% for a in items %}
+      <tr><td class="td-primary"><strong>{{ a.title }}</strong><div class="small muted">{{ a.body|truncatechars:90 }}</div></td><td data-label="Sent" class="small">{{ a.created_at|short_date }}<br>{{ a.recipients }} members</td></tr>
+    {% endfor %}</tbody></table>
+    {% else %}{% include "components/empty.html" with icon="megaphone" title="No announcements yet" compact=True %}{% endif %}
+  </section>
+</div>
+{% endblock %}

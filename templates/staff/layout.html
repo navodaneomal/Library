@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}{% block page_title %}Staff{% endblock %} — {{ library.library_name }}{% endblock %}
+{% block css %}<link rel="stylesheet" href="{% static 'css/staff.css' %}"><link rel="stylesheet" href="{% static 'css/site.css' %}">{% endblock %}
+{% block body_class %}staff-body{% endblock %}
+{% block body %}
+{% with un=request.resolver_match.url_name %}
+<div class="staff">
+  <aside class="sidebar" id="sidebar" aria-label="Staff navigation">
+    <div class="sidebar__brand">
+      <a class="brand" href="{% url 'staff:dashboard' %}"><span class="brand__mark">{% icon "book" %}</span><span>{{ library.library_name }}</span></a>
+      <small>Staff · {{ user.get_role_display }}</small>
+    </div>
+    <nav>
+      <div class="nav-group">
+        <div class="nav-group__title">Operations</div>
+        <a class="nav-link" href="{% url 'staff:dashboard' %}" {% if un == "dashboard" %}aria-current="page"{% endif %}>{% icon "chart" %} Dashboard</a>
+        <a class="nav-link" href="{% url 'staff:today' %}" {% if un == "today" %}aria-current="page"{% endif %}>{% icon "calendar" %} Today{% if staff_counts.to_pull %}<span class="nav-link__count">{{ staff_counts.to_pull }}</span>{% endif %}</a>
+        <a class="nav-link" href="{% url 'staff:borrow' %}" {% if un == "borrow" or un == "return" %}aria-current="page"{% endif %}>{% icon "refresh" %} Circulation</a>
+        <a class="nav-link" href="{% url 'staff:quick_scan' %}">{% icon "zap" %} Quick scan</a>
+      </div>
+      <div class="nav-group">
+        <div class="nav-group__title">Collection</div>
+        <a class="nav-link" href="{% url 'staff:books' %}" {% if un in "books book book_new book_add book_edit copy copy_edit copy_add labels" %}aria-current="page"{% endif %}>{% icon "books" %} Books</a>
+        <a class="nav-link" href="{% url 'staff:members' %}" {% if un in "members member member_new member_edit member_card" %}aria-current="page"{% endif %}>{% icon "users" %} Members</a>
+        <a class="nav-link" href="{% url 'staff:reservations' %}" {% if un == "reservations" %}aria-current="page"{% endif %}>{% icon "bookmark" %} Reservations</a>
+        <a class="nav-link" href="{% url 'staff:overdue' %}" {% if un == "overdue" %}aria-current="page"{% endif %}>{% icon "clock" %} Overdue{% if staff_counts.overdue %}<span class="nav-link__count">{{ staff_counts.overdue }}</span>{% endif %}</a>
+        <a class="nav-link" href="{% url 'staff:fees' %}" {% if un == "fees" or un == "fee" %}aria-current="page"{% endif %}>{% icon "coins" %} Fees</a>
+      </div>
+      {% if "inventory" in caps or "reports" in caps or "announcements" in caps %}
+      <div class="nav-group">
+        <div class="nav-group__title">Library</div>
+        {% if "inventory" in caps %}<a class="nav-link" href="{% url 'staff:inventory' %}" {% if un in "inventory inventory_session inventory_report" %}aria-current="page"{% endif %}>{% icon "box" %} Inventory</a>{% endif %}
+        {% if "reports" in caps %}<a class="nav-link" href="{% url 'staff:reports' %}" {% if un == "reports" or un == "report" %}aria-current="page"{% endif %}>{% icon "list" %} Reports</a>{% endif %}
+        {% if "announcements" in caps %}<a class="nav-link" href="{% url 'staff:announcements' %}" {% if un == "announcements" %}aria-current="page"{% endif %}>{% icon "megaphone" %} Announcements</a>{% endif %}
+      </div>
+      {% endif %}
+      {% if "settings" in caps %}
+      <div class="nav-group">
+        <div class="nav-group__title">Administration</div>
+        <a class="nav-link" href="{% url 'staff:settings' %}" {% if un == "settings" %}aria-current="page"{% endif %}>{% icon "settings" %} Settings</a>
+        <a class="nav-link" href="{% url 'staff:staff_users' %}" {% if un in "staff_users staff_new staff_edit" %}aria-current="page"{% endif %}>{% icon "shield" %} Staff accounts</a>
+        <a class="nav-link" href="{% url 'staff:audit' %}" {% if un == "audit" %}aria-current="page"{% endif %}>{% icon "history" %} Audit log</a>
+        <a class="nav-link" href="{% url 'staff:backup' %}" {% if un == "backup" %}aria-current="page"{% endif %}>{% icon "database" %} Backup &amp; export</a>
+      </div>
+      {% endif %}
+    </nav>
+    <div class="sidebar__foot">
+      <a class="nav-link" href="{% url 'public:home' %}">{% icon "external" %} Public website</a>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim" hidden></div>
+
+  <div class="staff-main">
+    <header class="topbar">
+      <button type="button" class="btn btn--ghost btn--icon topbar__menu" data-sidebar-toggle aria-controls="sidebar" aria-expanded="false" aria-label="Open navigation">{% icon "menu" %}</button>
+      <form class="search search--compact" action="{% url 'staff:books' %}" method="get" role="search">
+        <div class="search__field">
+          {% icon "search" %}
+          <label class="visually-hidden" for="staff-q">Search books, ISBN or barcode</label>
+          <input id="staff-q" type="search" name="q" placeholder="Search books, ISBN, barcode…  ( / )" data-global-search value="{% if un == 'books' %}{{ request.GET.q }}{% endif %}">
+        </div>
+      </form>
+      <div class="topbar__actions">
+        <a class="btn btn--primary" href="{% url 'staff:quick_scan' %}">{% icon "zap" %}<span class="hide-sm">Quick scan</span></a>
+        <button type="button" class="btn btn--ghost btn--icon" data-theme-toggle aria-pressed="false" aria-label="Switch theme">{% icon "moon" %}</button>
+        <details class="menu">
+          <summary class="btn btn--ghost btn--icon" aria-label="Account menu"><span class="avatar">{{ user.full_name|initials }}</span></summary>
+          <div class="menu__panel">
+            <div class="menu__header"><strong>{{ user.full_name }}</strong><div class="small muted">{{ user.get_role_display }} · {{ user.email }}</div></div>
+            <a class="menu__item" href="{% url 'accounts:password_change' %}">{% icon "shield" %} Change password</a>
+            <div class="menu__sep"></div>
+            <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button class="menu__item" type="submit">{% icon "logout" %} Sign out</button></form>
+          </div>
+        </details>
+      </div>
+    </header>
+    <main id="main" class="staff-content" tabindex="-1">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+{% endwith %}
+{% endblock %}
+{% block scripts %}{% block staff_scripts %}{% endblock %}{% endblock %}

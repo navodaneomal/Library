@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>{{ library_name }}</title></head>
+<body style="margin:0;padding:0;background:#f6f3ec;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1c1f1d;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f3ec;padding:24px 12px;">
+<tr><td align="center">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border:1px solid #e5e0d6;border-radius:14px;overflow:hidden;">
+    <tr><td style="background:#1f4d3f;padding:18px 28px;color:#f3efe4;font-family:Georgia,'Palatino Linotype',serif;font-size:18px;font-weight:600;">{{ library_name }}</td></tr>
+    <tr><td style="padding:28px 28px 8px;font-size:16px;line-height:1.6;">
+      {% block content %}{% endblock %}
+    </td></tr>
+    {% block button %}{% if url %}<tr><td style="padding:8px 28px 28px;"><a href="{{ url }}" style="display:inline-block;background:#1f4d3f;color:#ffffff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:10px;">{% block button_label %}Open my library account{% endblock %}</a></td></tr>{% endif %}{% endblock %}
+    <tr><td style="padding:18px 28px;border-top:1px solid #e5e0d6;color:#646b66;font-size:13px;line-height:1.5;">
+      {{ library_name }}{% if library.library_phone %} · {{ library.library_phone }}{% endif %}{% if library.library_email %} · {{ library.library_email }}{% endif %}<br>
+      {% if library.opening_hours %}{{ library.opening_hours|linebreaksbr }}{% endif %}
+    </td></tr>
+  </table>
+</td></tr>
+</table>
+</body></html>

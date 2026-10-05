@@ -1,0 +1,110 @@
+{% extends "public/layout.html" %}
+{% block title %}{{ book.title }} — {{ library.library_name }}{% endblock %}
+{% block meta_description %}{{ book.title }}{% if book.author_names %} by {{ book.author_names }}{% endif %}. {{ book.description|truncatechars:150 }}{% endblock %}
+{% block content %}
+<div class="container container--reading">
+  <nav class="breadcrumb mt-4" aria-label="Breadcrumb"><a href="{% url 'public:catalogue' %}">Books</a>{% if book.category_id %} / <a href="{% url 'public:catalogue' %}?category={{ book.category.slug }}">{{ book.category.name }}</a>{% endif %}</nav>
+  <article class="book-hero">
+    <div class="book-hero__cover">
+      {% include "components/cover.html" with book=book size="lg" alt="Cover of "|add:book.title loading="eager" %}
+    </div>
+    <div class="stack">
+      <header>
+        <h1>{{ book.title }}</h1>
+        {% if book.subtitle %}<p class="book-hero__subtitle">{{ book.subtitle }}</p>{% endif %}
+        {% if book.author_names %}<p class="book-hero__byline">by {% for author in book.authors.all %}<a href="{% url 'public:catalogue' %}?author={{ author.pk }}">{{ author.name }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</p>{% endif %}
+      </header>
+
+      <section class="reserve-box" aria-labelledby="availability-h">
+        <h2 id="availability-h" class="visually-hidden">Availability</h2>
+        <div class="reserve-box__status">
+          {% badge availability.state availability.label %}
+          <span class="ink-2">{% if book.reference_only %}Reference only — read it in the library{% elif availability.is_available %}{{ availability.available }} of {{ availability.total }} cop{{ availability.total|pluralize:"y,ies" }} on the shelf{% else %}{{ availability.hint }}{% endif %}</span>
+          {% if queue_length %}<span class="pill">{{ queue_length }} waiting</span>{% endif %}
+        </div>
+
+        {% with r=reserve %}
+        {% if book.reference_only %}
+          <p class="muted mb-0">Reference books stay in the library so they're always here when someone needs them.</p>
+        {% elif r.state == "anonymous" %}
+          <a class="btn btn--primary btn--lg btn--block" href="{% url 'accounts:login' %}?next={{ request.path|urlencode }}">{% if availability.is_available %}Sign in to reserve this book{% else %}Sign in to join the reservation queue{% endif %}</a>
+          {% if library.allow_self_registration %}<p class="small muted text-center mt-3 mb-0">New here? <a href="{% url 'accounts:register' %}">Become a member</a> — it takes a minute.</p>{% endif %}
+        {% elif r.state == "on_loan" %}
+          <div class="row row--between">
+            <div><strong>You have this book.</strong><div class="small muted">Due {{ r.loan.due_date|nice_date }}</div></div>
+            {% include "components/due.html" with date=r.loan.due_date %}
+          </div>
+        {% elif r.state == "reserved" %}
+          <div class="row row--between">
+            <div>
+              <strong>{% icon "check-circle" %} Reservation active</strong>
+              <div class="small muted">{% if r.reservation.status == "ready" %}Ready for collection — collect by {{ r.reservation.collect_by|nice_date }}{% else %}You're number {{ r.position }} in the queue · {{ r.estimate.text }}{% endif %}</div>
+            </div>
+            <a class="btn btn--soft" href="{% url 'portal:reservation' r.reservation.pk %}">View</a>
+          </div>
+        {% elif r.state == "can_reserve" %}
+          <form method="post" action="{% url 'public:reserve' book.slug %}">{% csrf_token %}
+            <button class="btn btn--primary btn--lg btn--block" type="submit">{% icon "bookmark" %} {% if availability.is_available %}Reserve this book{% else %}Join the reservation queue{% endif %}</button>
+          </form>
+          <p class="small muted mt-3 mb-0">{% if availability.is_available %}We'll set a copy aside for you to collect within {{ library.reservation_hold_days }} day{{ library.reservation_hold_days|pluralize }}.{% else %}We'll email you as soon as a copy is ready for you.{% endif %}</p>
+        {% else %}
+          <div class="alert alert--warning">{% icon "info" %}<div>{% for p in r.problems %}<p>{{ p }}</p>{% endfor %}</div></div>
+        {% endif %}
+        {% endwith %}
+
+        {% if shelves %}
+        <div class="mt-4">
+          <div class="eyebrow mb-2">Shelf finder</div>
+          {% for shelf in shelves %}<div class="mt-2">{% include "components/shelf_path.html" with steps=shelf.steps %} <span class="small muted mono">{{ shelf.code }}</span></div>{% endfor %}
+        </div>
+        {% endif %}
+      </section>
+
+      {% if book.description %}
+      <section aria-labelledby="about-h">
+        <h2 id="about-h" class="h3">About this book</h2>
+        <p class="prose">{{ book.description }}</p>
+      </section>
+      {% endif %}
+
+      {% with traits=book.traits.all %}
+      {% if traits %}
+      <section aria-labelledby="dna-h" class="card card--soft">
+        <div class="card-head"><h2 id="dna-h" class="h3">Book DNA</h2><span class="small muted">What this book feels like</span></div>
+        <div class="dna">
+          {% for trait in traits %}
+          <a class="dna__row" href="{% url 'public:catalogue' %}?q={{ trait.name|urlencode }}">
+            <span class="ink-2">{{ trait.name }}</span>
+            <span class="dna__bar" role="img" aria-label="{{ trait.name }}: {{ trait.score }} out of 10"><span class="dna__fill {{ trait.score|width_class }}"></span></span>
+            <span class="small muted num">{{ trait.score }}/10</span>
+          </a>
+          {% endfor %}
+        </div>
+      </section>
+      {% endif %}
+      {% endwith %}
+
+      <section aria-labelledby="details-h">
+        <h2 id="details-h" class="h3">Details</h2>
+        <dl class="kv mt-3">
+          {% if book.isbn %}<dt>ISBN</dt><dd class="mono">{{ book.isbn }}</dd>{% endif %}
+          {% if book.publisher_id %}<dt>Publisher</dt><dd>{{ book.publisher.name }}</dd>{% endif %}
+          {% if book.publication_year %}<dt>Published</dt><dd>{{ book.publication_year }}</dd>{% endif %}
+          {% if book.category_id %}<dt>Category</dt><dd><a href="{% url 'public:catalogue' %}?category={{ book.category.slug }}">{{ book.category.name }}</a></dd>{% endif %}
+          <dt>Language</dt><dd>{{ book.language }}</dd>
+          <dt>Copies</dt><dd class="num">{{ availability.total }}</dd>
+          <dt>Available</dt><dd class="num">{{ availability.available }}</dd>
+          <dt>Loan period</dt><dd>{% if book.loan_period_days %}{{ book.loan_period_days }}{% else %}{{ library.loan_period_days }}{% endif %} days</dd>
+        </dl>
+      </section>
+    </div>
+  </article>
+
+  {% if similar %}
+  <section class="section mt-6" aria-labelledby="similar-h">
+    <div class="section-head"><h2 id="similar-h">You might also like</h2></div>
+    <div class="book-row">{% for book in similar %}{% include "components/book_card.html" %}{% endfor %}</div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

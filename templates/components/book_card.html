@@ -1,0 +1,14 @@
+{% availability_of book as av %}
+<a class="book-card" href="{{ book.get_absolute_url }}">
+  {% include "components/cover.html" with book=book size="lg" %}
+  <div>
+    <div class="book-card__title">{{ book.title }}</div>
+    {% if book.author_names %}<div class="book-card__author">{{ book.author_names }}</div>{% endif %}
+    <div class="book-card__meta">
+      {% badge av.state av.label %}
+      {% if av.is_available %}<span class="small muted num">{{ av.available }} of {{ av.total }}</span>{% endif %}
+    </div>
+    {% if book.category_id %}<div class="book-card__cat">{{ book.category.name }}</div>{% endif %}
+    {% if show_desc and book.description %}<p class="book-card__desc">{{ book.description|truncatechars:110 }}</p>{% endif %}
+  </div>
+</a>

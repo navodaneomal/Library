@@ -1,0 +1,32 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}Fees{% endblock %}
+{% block content %}
+<div class="staff-head">
+  <div><h1>Fees</h1><p>{{ outstanding|money }} outstanding across all members.</p></div>
+  {% if "reports" in caps %}<a class="btn" href="{% url 'staff:report' 'fees' %}">{% icon "list" %} Fee report</a>{% endif %}
+</div>
+<form class="toolbar" method="get">
+  <div class="field grow"><label for="fq">Member</label><input id="fq" type="search" name="q" value="{{ query }}" placeholder="Name or member ID"></div>
+  <div class="field"><label for="fs">Status</label><select id="fs" name="status"><option value="all">All</option>{% for value, label in statuses %}<option value="{{ value }}" {% if value == status %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
+  <button class="btn" type="submit">Filter</button>
+</form>
+<section class="card card--flush">
+  {% if page.object_list %}
+  <table class="table table--cards">
+    <thead><tr><th>Member</th><th>Reason</th><th>Book</th><th>Date</th><th class="num">Amount</th><th>Status</th><th></th></tr></thead>
+    <tbody>{% for fee in page.object_list %}
+      <tr>
+        <td class="td-primary"><a class="table-title" href="{% url 'staff:member' fee.member_id %}">{{ fee.member.user.full_name }}</a><div class="small muted mono">{{ fee.member.member_id }}</div></td>
+        <td data-label="Reason">{{ fee.get_kind_display }}{% if fee.days_overdue %} <span class="small muted">· {{ fee.days_overdue }} days</span>{% endif %}</td>
+        <td data-label="Book">{% if fee.loan_id %}{{ fee.loan.copy.book.title }}{% else %}—{% endif %}</td>
+        <td data-label="Date">{{ fee.created_at|short_date }}</td>
+        <td data-label="Amount" class="num">{{ fee.amount|money }}{% if fee.status == "pending" and fee.amount_paid %}<div class="small muted">{{ fee.outstanding|money }} left</div>{% endif %}</td>
+        <td data-label="Status">{% badge fee.status fee.get_status_display %}</td>
+        <td data-label="" class="td-actions right"><a class="btn btn--sm" href="{% url 'staff:fee' fee.pk %}">{% if fee.status == "pending" and "fees.manage" in caps %}Record payment{% else %}Open{% endif %}</a></td>
+      </tr>
+    {% endfor %}</tbody>
+  </table>
+  {% else %}{% include "components/empty.html" with icon="coins" title="No fees here" text="Nothing matches this filter." %}{% endif %}
+</section>
+{% include "components/pagination.html" %}
+{% endblock %}

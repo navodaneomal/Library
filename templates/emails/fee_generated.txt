@@ -1,0 +1,12 @@
+{% autoescape off %}Hello {{ member.user.first_name }},
+
+A fee has been added to your library account.
+
+Reason: {{ fee.get_kind_display }}
+{{ fee.description }}
+Amount: {{ currency }} {{ fee.amount|floatformat:2 }}
+
+You can pay at the library desk.
+
+— {{ library_name }}
+{% endautoescape %}

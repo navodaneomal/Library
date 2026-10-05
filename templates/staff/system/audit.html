@@ -1,0 +1,22 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}Audit log{% endblock %}
+{% block content %}
+<div class="staff-head"><div><h1>Audit log</h1><p>Who did what, and when. Entries can't be edited or deleted from here.</p></div></div>
+<form class="toolbar" method="get"><div class="field grow"><label for="aq">Search</label><input id="aq" type="search" name="q" value="{{ query }}" placeholder="Person, action or description"></div><button class="btn" type="submit">Search</button></form>
+<section class="card card--flush">
+  {% if page.object_list %}
+  <table class="table table--cards">
+    <thead><tr><th>When</th><th>Who</th><th>What happened</th><th>Action</th></tr></thead>
+    <tbody>{% for e in page.object_list %}
+      <tr>
+        <td class="td-primary small nowrap">{{ e.created_at|date:"j M Y, H:i" }}</td>
+        <td data-label="Who"><strong>{{ e.actor_name|default:"System" }}</strong></td>
+        <td data-label="What">{{ e.summary }}{% if e.changes %}<details class="small muted"><summary>Changes</summary><ul>{% for k, v in e.changes.items %}<li><span class="mono">{{ k }}</span>: {{ v.0|default:"—" }} → {{ v.1|default:"—" }}</li>{% endfor %}</ul></details>{% endif %}</td>
+        <td data-label="Action" class="mono small">{{ e.action }}</td>
+      </tr>
+    {% endfor %}</tbody>
+  </table>
+  {% else %}{% include "components/empty.html" with icon="history" title="No entries" compact=True %}{% endif %}
+</section>
+{% include "components/pagination.html" %}
+{% endblock %}

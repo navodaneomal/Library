@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block css %}<link rel="stylesheet" href="{% static 'css/site.css' %}">{% endblock %}
+{% block body %}
+<main id="main" class="container auth" tabindex="-1">
+  <div class="auth__card">
+    <div class="card">{% block message %}{% endblock %}</div>
+    <p class="auth__alt"><a href="/">Go to the homepage</a></p>
+  </div>
+</main>
+{% endblock %}

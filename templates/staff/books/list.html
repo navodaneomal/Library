@@ -1,0 +1,39 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}Books{% endblock %}
+{% block content %}
+<div class="staff-head">
+  <div><h1>Books</h1><p>{{ totals.titles|intcomma }} titles · {{ totals.copies|intcomma }} copies</p></div>
+  {% if "books.manage" in caps %}<a class="btn btn--primary" href="{% url 'staff:book_add' %}">{% icon "plus" %} Add book</a>{% endif %}
+</div>
+<form class="toolbar" method="get">
+  <div class="field grow"><label for="q">Search</label><input id="q" type="search" name="q" value="{{ filters.q }}" placeholder="Title, author, ISBN, barcode, copy ID…"></div>
+  <div class="field"><label for="category">Category</label>
+    <select id="category" name="category"><option value="">All</option>{% for c in categories %}<option value="{{ c.slug }}" {% if c.slug == filters.category %}selected{% endif %}>{{ c.name }}</option>{% endfor %}</select></div>
+  <div class="field"><label for="show">Show</label>
+    <select id="show" name="show"><option value="">In catalogue</option><option value="archived" {% if show == "archived" %}selected{% endif %}>Archived ({{ totals.archived }})</option></select></div>
+  <label class="check"><input type="checkbox" name="available" value="1" {% if filters.available %}checked{% endif %}> <span>Available only</span></label>
+  <button class="btn" type="submit">Filter</button>
+</form>
+<section class="card card--flush">
+  {% if page.object_list %}
+  <table class="table table--cards">
+    <thead><tr><th>Book</th><th>ISBN</th><th>Category</th><th class="num">Copies</th><th>Availability</th></tr></thead>
+    <tbody>
+    {% for book in page.object_list %}{% availability_of book as av %}
+      <tr>
+        <td class="td-primary"><div class="row">{% include "components/cover.html" with book=book size="xs" %}<div class="grow"><a class="table-title" href="{% url 'staff:book' book.pk %}">{{ book.title }}</a><div class="small muted">{{ book.author_names }}</div></div></div></td>
+        <td data-label="ISBN" class="mono small">{{ book.isbn|default:"—" }}</td>
+        <td data-label="Category">{{ book.category.name|default:"—" }}</td>
+        <td data-label="Copies" class="num">{{ av.available }} / {{ av.total }}</td>
+        <td data-label="Availability">{% badge av.state av.label %}{% if book.reference_only %} <span class="pill">Reference</span>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    {% url 'staff:book_add' as add_url %}
+    {% include "components/empty.html" with icon="books" title="No books found" text="Try a different search, or add a new book by scanning its barcode." action_url=add_url action_label="Add a book" %}
+  {% endif %}
+</section>
+{% include "components/pagination.html" %}
+{% endblock %}

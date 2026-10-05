@@ -1,0 +1,11 @@
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["apps/*/migrations"]
+
+[tool.ruff.lint]
+select = ["F", "E9", "B", "I"]
+ignore = ["B904", "B008"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["apps", "config", "tests"]

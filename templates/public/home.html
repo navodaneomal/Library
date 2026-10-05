@@ -1,0 +1,71 @@
+{% extends "public/layout.html" %}
+{% block header_search %}{% endblock %}
+{% block fab %}{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="container">
+    <p class="eyebrow">{{ library.library_name }}</p>
+    <h1>Find your next story.</h1>
+    <p class="hero__lede">Search the whole catalogue, see what's on the shelf right now, and reserve from home.</p>
+    <form class="search search--hero" action="{% url 'public:catalogue' %}" method="get" role="search">
+      <div class="search__field">
+        {% icon "search" %}
+        <label class="visually-hidden" for="hero-q">Search the catalogue</label>
+        <input id="hero-q" type="search" name="q" placeholder="Search by title, author, ISBN, category or barcode..." data-suggest="{% url 'public:suggest' %}" data-global-search autofocus>
+        <button class="btn btn--primary btn--lg" type="submit">Search</button>
+      </div>
+    </form>
+    <nav class="quick-actions" aria-label="Quick actions">
+      <a class="quick-action" href="{% url 'public:catalogue' %}">{% icon "books" %} Browse books</a>
+      <a class="quick-action" href="{% url 'public:catalogue' %}?available=1">{% icon "check-circle" %} Available now</a>
+      <a class="quick-action" href="{% url 'public:catalogue' %}?sort=newest">{% icon "sparkles" %} New arrivals</a>
+      <a class="quick-action" href="{% url 'public:catalogue' %}?sort=popular">{% icon "flame" %} Popular books</a>
+      <a class="quick-action" href="{% url 'portal:reservations' %}">{% icon "bookmark" %} My reservations</a>
+      <a class="quick-action" href="{% url 'portal:my_books' %}">{% icon "book" %} My borrowed books</a>
+    </nav>
+  </div>
+</section>
+
+<div class="container">
+  {% if recommended %}
+  <section class="section" aria-labelledby="rec-h">
+    <div class="section-head"><h2 id="rec-h">You might enjoy</h2><span class="muted small">Based on what you've borrowed</span></div>
+    <div class="book-row">{% for book in recommended %}{% include "components/book_card.html" %}{% endfor %}</div>
+  </section>
+  {% endif %}
+
+  {% if popular %}
+  <section class="section" aria-labelledby="pop-h">
+    <div class="section-head"><h2 id="pop-h">Popular this week</h2><a href="{% url 'public:catalogue' %}?sort=popular">See all</a></div>
+    <div class="book-row">{% for book in popular %}{% include "components/book_card.html" %}{% endfor %}</div>
+  </section>
+  {% endif %}
+
+  <section class="section" aria-labelledby="avail-h">
+    <div class="section-head"><h2 id="avail-h">Available now</h2><a href="{% url 'public:catalogue' %}?available=1">See all</a></div>
+    {% if available_now %}
+      <div class="book-row">{% for book in available_now %}{% include "components/book_card.html" %}{% endfor %}</div>
+    {% else %}
+      {% include "components/empty.html" with title="Everything is out on loan" text="Join a reservation queue and we'll tell you the moment a copy is back." compact=True %}
+    {% endif %}
+  </section>
+
+  <section class="section" aria-labelledby="new-h">
+    <div class="section-head"><h2 id="new-h">Recently added</h2><a href="{% url 'public:catalogue' %}?sort=newest">See all</a></div>
+    {% if recent %}
+      <div class="book-row">{% for book in recent %}{% include "components/book_card.html" %}{% endfor %}</div>
+    {% else %}
+      {% include "components/empty.html" with title="The shelves are being stocked" text="New books will appear here as soon as they're catalogued." compact=True %}
+    {% endif %}
+  </section>
+
+  {% if categories %}
+  <section class="section" aria-labelledby="cat-h">
+    <div class="section-head"><h2 id="cat-h">Browse by category</h2></div>
+    <div class="chips">
+      {% for category in categories %}<a class="chip" href="{% url 'public:catalogue' %}?category={{ category.slug }}">{{ category.name }} <span class="muted">{{ category.n }}</span></a>{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

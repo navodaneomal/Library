@@ -1,0 +1,32 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}Inventory report — {{ session.name }}{% endblock %}
+{% block content %}
+<div class="staff-head">
+  <div><nav class="breadcrumb"><a href="{% url 'staff:inventory' %}">Inventory</a></nav><h1>{% if session.status == "completed" %}Inventory completed.{% else %}{{ session.name }}{% endif %}</h1><p>{{ session.name }} · started {{ session.started_at|nice_date }}{% if session.completed_at %} · completed {{ session.completed_at|nice_date }}{% endif %}</p></div>
+  <button class="btn" type="button" data-print>{% icon "printer" %} Print</button>
+</div>
+<section class="grid-4" aria-label="Summary">
+  <div class="stat stat--success"><div class="stat__label">Scanned</div><div class="stat__value">{{ counts.ok }}</div></div>
+  <div class="stat stat--danger"><div class="stat__label">Missing</div><div class="stat__value">{{ missing|length }}</div></div>
+  <div class="stat stat--warning"><div class="stat__label">Unexpected location</div><div class="stat__value">{{ counts.unexpected_location }}</div></div>
+  <div class="stat"><div class="stat__label">Duplicate scans</div><div class="stat__value">{{ counts.duplicate }}</div></div>
+</section>
+<section class="card card--flush mt-5" aria-labelledby="missing-h">
+  <div class="card-head card-head--pad"><h2 id="missing-h" class="h3">Missing — expected on the shelf, not scanned</h2>
+    {% if missing and session.status == "completed" %}<form method="post" action="{% url 'staff:inventory_mark_lost' session.pk %}" data-confirm="Mark all {{ missing|length }} missing copies as lost? Holds on them move to other copies.">{% csrf_token %}<button class="btn btn--sm btn--danger" type="submit">Mark all as lost</button></form>{% endif %}
+  </div>
+  {% if missing %}
+  <table class="table table--cards"><thead><tr><th>Shelf</th><th>Book</th><th>Copy</th><th>Barcode</th><th>Status now</th></tr></thead><tbody>{% for c in missing %}
+    <tr><td class="td-primary mono">{{ c.shelf_location|default:"—" }}</td><td data-label="Book"><a href="{% url 'staff:copy' c.pk %}">{{ c.book.title }}</a></td><td data-label="Copy" class="mono small">{{ c.copy_code }}</td><td data-label="Barcode" class="mono small">{{ c.barcode }}</td><td data-label="Status now">{% badge c.status c.get_status_display %}</td></tr>
+  {% endfor %}</tbody></table>
+  {% else %}{% include "components/empty.html" with icon="check-circle" title="Nothing missing" text="Every expected copy was found." compact=True %}{% endif %}
+</section>
+<section class="card card--flush mt-5" aria-labelledby="att-h">
+  <div class="card-head card-head--pad"><h2 id="att-h" class="h3">Needs attention</h2></div>
+  {% if problems %}
+  <table class="table table--cards"><thead><tr><th>Item</th><th>Result</th><th>Note</th><th>Scanned at shelf</th></tr></thead><tbody>{% for s in problems %}
+    <tr><td class="td-primary">{% if s.copy %}<a href="{% url 'staff:copy' s.copy_id %}">{{ s.copy.book.title }}</a>{% else %}<span class="mono">{{ s.barcode }}</span>{% endif %}</td><td data-label="Result">{% badge s.result s.get_result_display %}</td><td data-label="Note">{{ s.note }}</td><td data-label="Shelf" class="mono small">{{ s.location|default:"—" }}</td></tr>
+  {% endfor %}</tbody></table>
+  {% else %}{% include "components/empty.html" with icon="check-circle" title="No problems found" compact=True %}{% endif %}
+</section>
+{% endblock %}

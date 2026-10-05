@@ -1,0 +1,6 @@
+{% extends "emails/base.html" %}
+{% block content %}<p style="margin:0 0 12px;font-size:20px;font-family:Georgia,serif;">💰 A fee has been added to your account</p>
+<p>{{ fee.description }}</p>
+<p style="font-size:22px;font-weight:600;">{{ currency }} {{ fee.amount|floatformat:2 }}</p>
+<p style="color:#646b66;">You can pay at the library desk by cash or card.</p>{% endblock %}
+{% block button_label %}View my fees{% endblock %}

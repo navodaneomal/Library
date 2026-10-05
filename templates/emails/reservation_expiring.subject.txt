@@ -1,0 +1,1 @@
+{% autoescape off %}Last chance to collect {{ book.title }}{% endautoescape %}

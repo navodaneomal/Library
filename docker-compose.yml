@@ -1,0 +1,80 @@
+# Production stack: PostgreSQL + the web app + an hourly scheduler + Caddy
+# (automatic HTTPS). Configure everything in `.env` — see .env.example.
+#
+#   docker compose up -d --build
+#   docker compose exec web python manage.py seed_demo --password "..."   # optional demo data
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: library
+      POSTGRES_USER: library
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U library -d library"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://library:${POSTGRES_PASSWORD}@db:5432/library
+      BEHIND_PROXY: "True"
+      SERVE_MEDIA: "False"
+      MEDIA_ROOT: /app/media
+      BACKUP_DIR: /app/backups
+    volumes:
+      - media:/app/media
+      - backups:/app/backups
+    depends_on:
+      db:
+        condition: service_healthy
+
+  scheduler:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://library:${POSTGRES_PASSWORD}@db:5432/library
+      RUN_MIGRATIONS: "0"
+      MEDIA_ROOT: /app/media
+      BACKUP_DIR: /app/backups
+    command: ["/app/deploy/scheduler.sh"]
+    healthcheck:
+      disable: true  # no web server in this container
+    volumes:
+      - media:/app/media
+      - backups:/app/backups
+    depends_on:
+      web:
+        condition: service_healthy
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - media:/srv/media:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+
+volumes:
+  pgdata:
+  media:
+  backups:
+  caddy_data:
+  caddy_config:

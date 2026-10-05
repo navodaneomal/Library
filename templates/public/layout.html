@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block css %}<link rel="stylesheet" href="{% static 'css/site.css' %}">{% endblock %}
+{% block body %}
+{% with ns=request.resolver_match.namespace un=request.resolver_match.url_name %}
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="brand" href="{% url 'public:home' %}" aria-label="{{ library.library_name }} — home">
+      <span class="brand__mark">{% icon "book" %}</span>
+      <span>{{ library.library_name }}</span>
+    </a>
+    <nav class="site-nav" aria-label="Main">
+      <a href="{% url 'public:catalogue' %}" {% if ns == "public" and un != "home" %}aria-current="page"{% endif %}>Browse books</a>
+      {% if user.is_authenticated and user.member %}
+        <a href="{% url 'portal:my_books' %}" {% if un == "my_books" %}aria-current="page"{% endif %}>My books</a>
+        <a href="{% url 'portal:reservations' %}" {% if un == "reservations" or un == "reservation" %}aria-current="page"{% endif %}>Reservations</a>
+      {% endif %}
+    </nav>
+    {% block header_search %}
+    <form class="search search--compact header-search" action="{% url 'public:catalogue' %}" method="get" role="search">
+      <div class="search__field">
+        {% icon "search" %}
+        <label class="visually-hidden" for="header-q">Search the catalogue</label>
+        <input id="header-q" type="search" name="q" placeholder="Search books…" data-suggest="{% url 'public:suggest' %}" data-global-search>
+      </div>
+    </form>
+    {% endblock %}
+    <div class="header-actions">
+      <button type="button" class="btn btn--ghost btn--icon" data-theme-toggle aria-pressed="false" aria-label="Switch theme">{% icon "moon" %}</button>
+      {% if user.is_authenticated %}
+        {% if user.member %}
+        <a class="btn btn--ghost btn--icon bell" href="{% url 'portal:notifications' %}" aria-label="Notifications{% if unread_notifications %}, {{ unread_notifications }} unread{% endif %}">
+          {% icon "bell" %}{% if unread_notifications %}<span class="bell__count">{{ unread_notifications }}</span>{% endif %}
+        </a>
+        {% endif %}
+        <details class="menu">
+          <summary class="btn btn--ghost btn--icon" aria-label="Account menu"><span class="avatar">{{ user.full_name|initials }}</span></summary>
+          <div class="menu__panel">
+            <div class="menu__header">
+              <strong>{{ user.full_name }}</strong>
+              {% if user.member %}<div class="small muted mono">{{ user.member.member_id }}</div>{% endif %}
+            </div>
+            {% if user.member %}
+              <a class="menu__item" href="{% url 'portal:dashboard' %}">{% icon "home" %} My library</a>
+              <a class="menu__item" href="{% url 'portal:card' %}">{% icon "card" %} Library card</a>
+              <a class="menu__item" href="{% url 'portal:fees' %}">{% icon "coins" %} Fees</a>
+              <a class="menu__item" href="{% url 'portal:profile' %}">{% icon "user" %} Profile</a>
+            {% endif %}
+            {% if "staff.access" in caps %}
+              <a class="menu__item" href="{% url 'staff:dashboard' %}">{% icon "shield" %} Staff area</a>
+            {% endif %}
+            <div class="menu__sep"></div>
+            <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}
+              <button class="menu__item" type="submit">{% icon "logout" %} Sign out</button>
+            </form>
+          </div>
+        </details>
+      {% else %}
+        <a class="btn btn--ghost" href="{% url 'accounts:login' %}?next={{ request.get_full_path|urlencode }}">Sign in</a>
+        {% if library.allow_self_registration %}<a class="btn btn--primary" href="{% url 'accounts:register' %}">Join</a>{% endif %}
+      {% endif %}
+    </div>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+  <div class="container site-footer__grid">
+    <div>
+      <a class="brand" href="{% url 'public:home' %}"><span class="brand__mark">{% icon "book" %}</span><span>{{ library.library_name }}</span></a>
+      {% if library.library_address %}<p class="small">{{ library.library_address }}</p>{% endif %}
+    </div>
+    {% if library.opening_hours %}
+    <div>
+      <h3>Opening hours</h3>
+      <p>{{ library.opening_hours }}</p>
+    </div>
+    {% endif %}
+    <div>
+      <h3>Contact</h3>
+      <p>{% if library.library_email %}<a href="mailto:{{ library.library_email }}">{{ library.library_email }}</a>{% endif %}{% if library.library_phone %}
+{{ library.library_phone }}{% endif %}</p>
+    </div>
+  </div>
+</footer>
+
+<nav class="tabbar" aria-label="Mobile">
+  <a href="{% url 'public:home' %}" {% if un == "home" %}aria-current="page"{% endif %}>{% icon "home" %}<span>Home</span></a>
+  <a href="{% url 'public:catalogue' %}" {% if un == "catalogue" or un == "book" %}aria-current="page"{% endif %}>{% icon "books" %}<span>Books</span></a>
+  <a href="{% url 'portal:my_books' %}" {% if un == "my_books" or un == "dashboard" %}aria-current="page"{% endif %}>{% icon "book" %}<span>My Books</span></a>
+  <a href="{% url 'portal:reservations' %}" {% if un == "reservations" or un == "reservation" %}aria-current="page"{% endif %}>{% icon "bookmark" %}<span>Reservations</span></a>
+  <a href="{% if user.is_authenticated %}{% url 'portal:profile' %}{% else %}{% url 'accounts:login' %}{% endif %}" {% if un == "profile" or un == "card" or un == "login" %}aria-current="page"{% endif %}>{% icon "user" %}<span>Profile</span></a>
+</nav>
+{% block fab %}<a class="fab" href="{% url 'public:catalogue' %}" aria-label="Search books">{% icon "search" "icon--lg" %}</a>{% endblock %}
+{% endwith %}
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/suggest.js' %}" defer></script>{% endblock %}

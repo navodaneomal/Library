@@ -1,0 +1,8 @@
+{% autoescape off %}Hello {{ member.user.first_name }},
+
+We've received your payment of {{ currency }} {{ amount|floatformat:2 }} ({{ payment.get_method_display }}){% if payment.reference %}, reference {{ payment.reference }}{% endif %}.
+
+Thank you.
+
+— {{ library_name }}
+{% endautoescape %}

@@ -1,0 +1,10 @@
+# /etc/systemd/system/library-backup.service — run by library-backup.timer
+[Unit]
+Description=Nightly library backup
+
+[Service]
+Type=oneshot
+User=library
+WorkingDirectory=/opt/library
+EnvironmentFile=/opt/library/.env
+ExecStart=/opt/library/.venv/bin/python manage.py backup --with-media --keep 30

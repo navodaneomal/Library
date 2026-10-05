@@ -1,0 +1,39 @@
+<div class="stack">
+  <form method="post" action="{% url 'staff:quick_scan' %}" data-swap="#panel" autocomplete="off">{% csrf_token %}
+    <input type="hidden" name="action" value="scan">
+    <label class="visually-hidden" for="qs-code">Scan a barcode</label>
+    <div class="scan-input">
+      <input id="qs-code" name="code" type="text" placeholder="{% if state.pending_copy_id %}Press Enter to confirm{% else %}Scan anything{% endif %}" data-scan-primary data-autofocus data-clear-after autofocus>
+      <button class="btn btn--icon" type="button" data-camera-for="qs-code" hidden aria-label="Scan with camera">{% icon "camera" %}</button>
+    </div>
+  </form>
+
+  {% if member %}
+  <div class="quickscan__member">
+    <span class="avatar avatar--lg">{{ member.user.full_name|initials }}</span>
+    <div class="grow"><strong>{{ member.user.full_name }}</strong><div class="small muted mono">{{ member.member_id }} · {{ standing.active_loans|length }} on loan{% if standing.outstanding_fees %} · {{ standing.outstanding_fees|money }} unpaid{% endif %}</div></div>
+    {% if standing.can_borrow %}{% badge "available" "Can borrow" %}{% else %}{% badge "borrowed" "Blocked" %}{% endif %}
+    <form method="post" action="{% url 'staff:quick_scan' %}" data-swap="#panel">{% csrf_token %}<button class="btn btn--sm" name="action" value="clear" type="submit" data-scan-reset>Clear <kbd>Esc</kbd></button></form>
+  </div>
+  {% endif %}
+
+  <div aria-live="assertive">
+  {% with result=state.result %}
+    {% if result %}
+    <div class="result result--{{ result.tone }}" data-sound="{{ result.sound }}">
+      <div class="result__head">
+        <span class="result__icon" aria-hidden="true">{% if result.tone == "success" or result.tone == "ready" %}{% icon "check" %}{% elif result.tone == "error" %}{% icon "x" %}{% elif result.tone == "warning" %}{% icon "alert" %}{% else %}{% icon "scan" %}{% endif %}</span>
+        <div><div class="result__title">{{ result.title }}</div>{% if result.subtitle %}<div class="result__subtitle">{{ result.subtitle }}</div>{% endif %}</div>
+      </div>
+      {% if result.details %}<dl class="kv">{% for label, value in result.details %}<dt>{{ label }}</dt><dd>{{ value }}</dd>{% endfor %}</dl>{% endif %}
+      {% if result.problems %}<ul class="result__problems">{% for p in result.problems %}<li>{{ p }}</li>{% endfor %}</ul>{% endif %}
+      {% if result.hint %}<p class="result__hint">{{ result.hint }}</p>{% endif %}
+    </div>
+    {% else %}
+    <div class="result result--info" data-sound="success">
+      <div class="result__head"><span class="result__icon" aria-hidden="true">{% icon "scan" %}</span><div><div class="result__title">Ready</div><div class="result__subtitle">Scan a library card or a book</div></div></div>
+    </div>
+    {% endif %}
+  {% endwith %}
+  </div>
+</div>

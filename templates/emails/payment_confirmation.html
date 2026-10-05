@@ -1,0 +1,3 @@
+{% extends "emails/base.html" %}
+{% block content %}<p>Hello {{ member.user.first_name }},</p><p>We have received your payment of <strong>{{ currency }} {{ amount|floatformat:2 }}</strong> ({{ payment.get_method_display }}){% if payment.reference %}, reference {{ payment.reference }}{% endif %}.</p><p>Thank you.</p>{% endblock %}
+{% block button_label %}View my fees{% endblock %}

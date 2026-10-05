@@ -1,0 +1,11 @@
+{% autoescape off %}Hello {{ member.user.first_name }},
+
+Your book is waiting for you.
+
+{{ book.title }} is now available for collection.
+{% if collect_by %}Please collect it before {{ collect_by|date:'j F' }}.{% endif %}
+
+Bring your library card (or your member ID {{ member.member_id }}) to the front desk.
+
+— {{ library_name }}
+{% endautoescape %}

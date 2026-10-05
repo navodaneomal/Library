@@ -1,0 +1,39 @@
+{% extends "public/layout.html" %}
+{% block title %}My books — {{ library.library_name }}{% endblock %}
+{% block content %}
+<div class="container container--reading">
+  <header class="page-head"><h1>My books</h1><p>What you have now, and everything you've read with us.</p></header>
+  <section class="card" aria-labelledby="now-h">
+    <div class="card-head"><h2 id="now-h" class="h3">Borrowed now</h2><span class="small muted">{{ loans|length }} of {{ library.max_active_loans }}</span></div>
+    {% for row in loans %}
+      {% include "portal/_loan_item.html" with show_renew_reason=True %}
+    {% empty %}
+      {% url 'public:catalogue' as catalogue_url %}
+      {% include "components/empty.html" with title="Your shelf is empty." text="There is always another story waiting." action_url=catalogue_url action_label="Explore books" compact=True %}
+    {% endfor %}
+  </section>
+
+  <section class="card card--flush mt-5" aria-labelledby="hist-h">
+    <div class="card-head card-head--pad"><h2 id="hist-h" class="h3">Borrowing history</h2></div>
+    {% if page.object_list %}
+    <table class="table table--cards">
+      <thead><tr><th>Book</th><th>Borrowed</th><th>Returned</th><th>Fee</th><th></th></tr></thead>
+      <tbody>
+      {% for loan in page.object_list %}
+        <tr>
+          <td class="td-primary"><a class="table-title" href="{{ loan.copy.book.get_absolute_url }}">{{ loan.copy.book.title }}</a><div class="small muted">{{ loan.copy.book.author_names }}</div></td>
+          <td data-label="Borrowed">{{ loan.borrowed_at|short_date }}</td>
+          <td data-label="Returned">{% if loan.status == "lost" %}{% badge "lost" "Lost" %}{% else %}{{ loan.returned_at|short_date }}{% endif %}</td>
+          <td data-label="Fee">{% for fee in loan.fees.all %}{{ fee.amount|money }} {% badge fee.status fee.get_status_display %}{% empty %}<span class="muted">—</span>{% endfor %}</td>
+          <td data-label="" class="td-actions"><a class="btn btn--sm" href="{{ loan.copy.book.get_absolute_url }}">Borrow again</a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <div class="container">{% include "components/pagination.html" %}</div>
+    {% else %}
+      {% include "components/empty.html" with icon="history" title="No history yet" text="Books you return will be listed here." compact=True %}
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#1f4d3f">
+  <meta name="description" content="{% block meta_description %}Search the {{ library.library_name }} catalogue, reserve books from home and manage your loans.{% endblock %}">
+  <title>{% block title %}{{ library.library_name }}{% endblock %}</title>
+  <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
+  <link rel="manifest" href="{% static 'manifest.webmanifest' %}">
+  <script src="{% static 'js/theme.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/components.css' %}">
+  {% block css %}{% endblock %}
+  <link rel="stylesheet" href="{% static 'css/print.css' %}" media="print">
+</head>
+<body class="{% block body_class %}{% endblock %}"{% block body_attrs %}{% endblock %}>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <div class="progress-bar" id="progress" aria-hidden="true"></div>
+  {% block body %}{% endblock %}
+  {% include "components/messages.html" %}
+  <script src="{% static 'js/app.js' %}" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

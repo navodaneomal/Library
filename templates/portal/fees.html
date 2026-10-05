@@ -1,0 +1,62 @@
+{% extends "public/layout.html" %}
+{% block title %}Fees — {{ library.library_name }}{% endblock %}
+{% block content %}
+<div class="container container--reading">
+  <header class="page-head"><h1>Fees</h1><p>Pay at the library desk by cash or card. Payments appear here immediately.</p></header>
+
+  <div class="fee-banner">
+    {% icon "coins" "icon--lg" %}
+    <div class="grow">
+      <div class="small ink-2">Outstanding library fee</div>
+      <div class="fee-banner__amount num">{{ standing.outstanding_fees|money }}</div>
+    </div>
+    {% if standing.estimated_fees %}<div><div class="small ink-2">Still growing (estimated)</div><div class="num"><strong>{{ standing.estimated_fees|money }}</strong></div></div>{% endif %}
+  </div>
+
+  {% if accruing %}
+  <section class="card mt-5" aria-labelledby="acc-h">
+    <div class="card-head"><h2 id="acc-h" class="h3">Overdue books — estimated fees</h2></div>
+    <p class="small muted">These fees keep increasing each day until the book is returned. The final amount is set on return.</p>
+    <table class="table table--cards">
+      <thead><tr><th>Book</th><th>Due</th><th>Overdue</th><th class="num">Estimated fee</th></tr></thead>
+      <tbody>{% for loan, quote in accruing %}
+        <tr><td class="td-primary">{{ loan.copy.book.title }}</td><td data-label="Due">{{ loan.due_date|short_date }}</td><td data-label="Overdue">{{ quote.days_overdue }} day{{ quote.days_overdue|pluralize }}</td><td data-label="Estimated fee" class="num">{{ quote.amount|money }}{% if quote.capped %} <span class="small muted">(maximum)</span>{% endif %}</td></tr>
+      {% endfor %}</tbody>
+    </table>
+  </section>
+  {% endif %}
+
+  <section class="card card--flush mt-5" aria-labelledby="pend-h">
+    <div class="card-head card-head--pad"><h2 id="pend-h" class="h3">Outstanding</h2></div>
+    {% if pending %}
+    <table class="table table--cards">
+      <thead><tr><th>Reason</th><th>Book</th><th>Days overdue</th><th>Date</th><th class="num">Amount</th><th>Status</th></tr></thead>
+      <tbody>{% for fee in pending %}
+        <tr>
+          <td class="td-primary">{{ fee.get_kind_display }}</td>
+          <td data-label="Book">{% if fee.loan_id %}{{ fee.loan.copy.book.title }}{% else %}—{% endif %}</td>
+          <td data-label="Days overdue">{{ fee.days_overdue|default:"—" }}</td>
+          <td data-label="Date">{{ fee.created_at|short_date }}</td>
+          <td data-label="Amount" class="num">{{ fee.outstanding|money }}{% if fee.amount_paid %}<div class="small muted">of {{ fee.amount|money }}</div>{% endif %}</td>
+          <td data-label="Status">{% badge fee.status fee.get_status_display %}</td>
+        </tr>
+      {% endfor %}</tbody>
+    </table>
+    {% else %}
+      {% include "components/empty.html" with icon="check-circle" title="All clear" text="You don't owe anything. Thank you for returning books on time." compact=True %}
+    {% endif %}
+  </section>
+
+  {% if settled %}
+  <section class="card card--flush mt-5" aria-labelledby="hist-h">
+    <div class="card-head card-head--pad"><h2 id="hist-h" class="h3">Payment history</h2></div>
+    <table class="table table--cards">
+      <thead><tr><th>Reason</th><th>Date</th><th class="num">Amount</th><th>Status</th></tr></thead>
+      <tbody>{% for fee in settled %}
+        <tr><td class="td-primary">{{ fee.description }}</td><td data-label="Date">{{ fee.resolved_at|default:fee.created_at|short_date }}</td><td data-label="Amount" class="num">{{ fee.amount|money }}</td><td data-label="Status">{% badge fee.status fee.get_status_display %}</td></tr>
+      {% endfor %}</tbody>
+    </table>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

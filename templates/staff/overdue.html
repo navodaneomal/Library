@@ -1,0 +1,29 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}Overdue{% endblock %}
+{% block content %}
+<div class="staff-head">
+  <div><h1>Overdue</h1><p>{{ rows|length }} book{{ rows|length|pluralize }} overdue · {{ total|money }} in estimated fees (still growing).</p></div>
+  <div class="row">
+    {% if "reports" in caps %}<a class="btn" href="{% url 'staff:report' 'overdue' %}?format=csv">{% icon "download" %} CSV</a>{% endif %}
+    {% if "reminders.send" in caps %}<form method="post" action="{% url 'staff:run_tasks' %}">{% csrf_token %}<button class="btn btn--primary" type="submit">{% icon "mail" %} Send due reminders now</button></form>{% endif %}
+  </div>
+</div>
+<section class="card card--flush">
+  {% if rows %}
+  <table class="table table--cards">
+    <thead><tr><th>Book</th><th>Member</th><th>Due</th><th class="num">Days</th><th class="num">Current fee</th><th>Status</th><th></th></tr></thead>
+    <tbody>{% for row in rows %}{% with loan=row.loan %}
+      <tr>
+        <td class="td-primary"><a class="table-title" href="{% url 'staff:copy' loan.copy_id %}">{{ loan.copy.book.title }}</a><div class="small muted mono">{{ loan.copy.copy_code }}</div></td>
+        <td data-label="Member"><a href="{% url 'staff:member' loan.member_id %}">{{ loan.member.user.full_name }}</a><div class="small muted">{{ loan.member.phone|default:loan.member.user.email }}</div></td>
+        <td data-label="Due">{{ loan.due_date|short_date }}</td>
+        <td data-label="Days" class="num">{{ row.quote.days_overdue }}</td>
+        <td data-label="Current fee" class="num">{{ row.quote.amount|money }}{% if row.quote.capped %}<div class="small muted">maximum</div>{% endif %}</td>
+        <td data-label="Status">{% badge "overdue" "Overdue" %}</td>
+        <td data-label="" class="td-actions right">{% if loan.member.user.email %}<form method="post" action="{% url 'staff:loan_remind' loan.pk %}">{% csrf_token %}<button class="btn btn--sm" type="submit">{% icon "mail" %} Remind</button></form>{% else %}<span class="small muted">No email — phone</span>{% endif %}</td>
+      </tr>
+    {% endwith %}{% endfor %}</tbody>
+  </table>
+  {% else %}{% include "components/empty.html" with icon="check-circle" title="Nothing is overdue" text="Every book on loan is within its due date." %}{% endif %}
+</section>
+{% endblock %}

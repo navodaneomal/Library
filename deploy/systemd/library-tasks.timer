@@ -1,0 +1,10 @@
+# /etc/systemd/system/library-tasks.timer
+[Unit]
+Description=Run library scheduled tasks every hour
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+
+[Install]
+WantedBy=timers.target

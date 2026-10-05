@@ -1,0 +1,3 @@
+{% extends "emails/base.html" %}
+{% block content %}<p>Hello {{ member.user.first_name }},</p><p><strong>{{ book.title }}</strong> is still waiting for you, but your hold ends on <strong>{{ collect_by|date:"j F" }}</strong>. After that it passes to the next member in the queue.</p>{% endblock %}
+{% block button_label %}View my reservations{% endblock %}

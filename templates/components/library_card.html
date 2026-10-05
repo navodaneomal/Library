@@ -1,0 +1,6 @@
+<div class="library-card" role="img" aria-label="Library card for {{ member.user.full_name }}, member ID {{ member.member_id }}">
+  <div class="library-card__name">{{ library.library_name }}</div>
+  <div class="library-card__member">{{ member.user.full_name }}</div>
+  <div class="library-card__id">{{ member.member_id }}</div>
+  <div class="barcode">{% barcode member.member_id 46 2 %}</div>
+</div>

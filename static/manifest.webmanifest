@@ -1,0 +1,9 @@
+{
+  "name": "Library",
+  "short_name": "Library",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f3ec",
+  "theme_color": "#1f4d3f",
+  "icons": [{ "src": "img/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

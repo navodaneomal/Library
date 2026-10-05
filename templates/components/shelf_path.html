@@ -1,0 +1,1 @@
+<span class="shelf-path">{% icon "map-pin" %}{% for step in steps %}<span class="shelf-path__step">{{ step }}</span>{% if not forloop.last %}<span class="shelf-path__sep" aria-hidden="true">→</span>{% endif %}{% endfor %}</span>

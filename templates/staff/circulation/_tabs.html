@@ -1,0 +1,5 @@
+<nav class="tabs" aria-label="Circulation">
+  <a class="tab" href="{% url 'staff:borrow' %}" {% if active == "borrow" %}aria-current="page"{% endif %}>{% icon "book" %} Borrow</a>
+  <a class="tab" href="{% url 'staff:return' %}" {% if active == "return" %}aria-current="page"{% endif %}>{% icon "return" %} Return</a>
+  <a class="tab" href="{% url 'staff:quick_scan' %}">{% icon "zap" %} Quick scan</a>
+</nav>

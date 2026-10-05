@@ -1,0 +1,11 @@
+{% autoescape off %}Hello {{ member.user.first_name }},
+
+Your library book is due soon.
+
+{{ book.title }}
+Due date: {{ loan.due_date|date:'j F Y' }} ({{ when }})
+
+Please return it on time to avoid late fees.{% if library.max_renewals %} You may be able to renew it online: {{ url }}{% endif %}
+
+— {{ library_name }}
+{% endautoescape %}

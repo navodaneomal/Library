@@ -1,0 +1,6 @@
+{% extends "emails/base.html" %}
+{% block content %}<p>Hello {{ member.user.first_name }},</p><p><strong>{{ book.title }}</strong> has been recorded as lost and the loan has been closed.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" style="font-size:15px;margin-bottom:16px;">{% for fee in fees %}<tr><td style="padding:2px 16px 2px 0;color:#646b66;">{{ fee.get_kind_display }}</td><td>{{ currency }} {{ fee.amount|floatformat:2 }}</td></tr>{% endfor %}
+<tr><td style="padding:6px 16px 2px 0;"><strong>Total</strong></td><td><strong>{{ currency }} {{ total|floatformat:2 }}</strong></td></tr></table>
+<p style="color:#646b66;">If you find the book, please bring it back and speak to a librarian.</p>{% endblock %}
+{% block button_label %}View my fees{% endblock %}

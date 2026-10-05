@@ -1,0 +1,21 @@
+{% extends "accounts/layout.html" %}
+{% block title %}Join — {{ library.library_name }}{% endblock %}
+{% block card %}
+<h1>Become a member</h1>
+<p class="muted">You'll get a member ID and a digital library card straight away.</p>
+<form method="post" novalidate class="mt-4">{% csrf_token %}
+  {% include "components/form_errors.html" %}
+  {% include "components/field.html" with field=form.full_name %}
+  {% include "components/field.html" with field=form.email %}
+  <div class="form-row">
+    {% include "components/field.html" with field=form.phone %}
+    {% include "components/field.html" with field=form.date_of_birth %}
+  </div>
+  {% include "components/field.html" with field=form.address %}
+  {% include "components/field.html" with field=form.password1 %}
+  {% include "components/field.html" with field=form.password2 %}
+  <p class="small muted mt-4">We only use your details to run your library account. They are never shown publicly.</p>
+  <div class="form-actions"><button class="btn btn--primary btn--lg btn--block" type="submit">Create my account</button></div>
+</form>
+{% endblock %}
+{% block after %}<p class="auth__alt">Already a member? <a href="{% url 'accounts:login' %}">Sign in</a></p>{% endblock %}

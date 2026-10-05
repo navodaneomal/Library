@@ -1,0 +1,12 @@
+{% extends "public/layout.html" %}
+{% block title %}Library card — {{ library.library_name }}{% endblock %}
+{% block content %}
+<div class="container container--narrow">
+  <header class="page-head text-center no-print"><h1>Your library card</h1><p>Show this at the desk — staff scan the barcode to lend you books.</p></header>
+  {% include "components/library_card.html" with member=member %}
+  <div class="row mt-5 no-print">
+    <button class="btn btn--primary grow" type="button" data-print>{% icon "printer" %} Print card</button>
+  </div>
+  <p class="small muted text-center mt-4 no-print">Tip: turn your screen brightness up so the scanner can read the barcode.</p>
+</div>
+{% endblock %}

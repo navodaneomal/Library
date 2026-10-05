@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Quick scan — {{ library.library_name }}{% endblock %}
+{% block css %}<link rel="stylesheet" href="{% static 'css/staff.css' %}">{% endblock %}
+{% block body_attrs %} data-scan-station{% endblock %}
+{% block body %}
+<div class="quickscan">
+  <header class="quickscan__bar">
+    <a class="btn btn--ghost btn--sm" href="{% url 'staff:dashboard' %}">{% icon "arrow-left" %} Exit</a>
+    <span class="quickscan__title">{% icon "zap" %} QUICK SCAN</span>
+    <span class="grow"></span>
+    <button type="button" class="btn btn--ghost btn--icon" data-sound-toggle aria-pressed="true" aria-label="Scan sounds">{% icon "volume" %}</button>
+    <button type="button" class="btn btn--ghost btn--icon" data-theme-toggle aria-label="Switch theme">{% icon "moon" %}</button>
+  </header>
+  <main id="main" class="quickscan__body" tabindex="-1">
+    <div id="panel">{% include "staff/_quickscan_panel.html" %}</div>
+    <details class="card card--soft">
+      <summary><strong>How Quick Scan works</strong></summary>
+      <ul class="mt-3">
+        <li>Scan a <strong>library card</strong> to start serving that member.</li>
+        <li>Scan a book that is <strong>on loan</strong> — it is returned instantly.</li>
+        <li>Scan an <strong>available</strong> book with a member loaded — press <kbd>Enter</kbd> to lend it.</li>
+        <li><kbd>Esc</kbd> clears the member. Everything works with a USB scanner; no mouse needed.</li>
+      </ul>
+    </details>
+  </main>
+</div>
+{% include "components/camera_dialog.html" %}
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/scanner.js' %}" defer></script><script src="{% static 'js/camera.js' %}" defer></script>{% endblock %}

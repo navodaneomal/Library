@@ -1,0 +1,19 @@
+{% extends "staff/layout.html" %}
+{% block page_title %}Barcode labels{% endblock %}
+{% block content %}
+<div class="staff-head">
+  <div><h1>Barcode labels</h1><p>{{ copies|length }} label{{ copies|length|pluralize }} · print on sticker paper and attach inside the back cover.</p></div>
+  <div class="row"><button class="btn btn--primary" type="button" data-print>{% icon "printer" %} Print</button></div>
+</div>
+{% if copies %}
+<div class="labels-sheet">
+  {% for c in copies %}
+  <div class="copy-label">
+    <div class="copy-label__title">{{ c.book.title }}</div>
+    <div class="copy-label__meta"><span>{{ c.copy_code }}</span><span>{{ c.shelf_location }}</span></div>
+    <div class="barcode">{% barcode c.barcode 44 2 %}<div class="barcode__text">{{ c.barcode }}</div></div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}{% include "components/empty.html" with icon="printer" title="No labels selected" compact=True %}{% endif %}
+{% endblock %}
